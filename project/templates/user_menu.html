@@ -1,0 +1,6 @@
+{% if current_user.is_authenticated() %}
+    <ul class="user-menu">
+        <li><a href="{{ url_for('users.edit') }}">Settings</a></li>
+        <li><a href="{{ url_for('users.logout') }}">Logout</a></li>
+    </ul>
+{% endif %}

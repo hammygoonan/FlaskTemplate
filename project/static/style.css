@@ -1,0 +1,25 @@
+footer{
+    text-align: center;
+}
+.user-menu{
+    list-style-type: none;
+    padding: 0;
+}
+.user-menu li {
+    display: inline-block;
+    padding: 10px 20px;
+}
+form{
+    margin-bottom: 20px;
+}
+.clipboard{
+    background-image: url('/static/images/clipboard.svg');
+    background-size: 20px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    display: inline-block;
+    margin-bottom: -11px;
+    background-repeat: no-repeat;
+    background-position: center center;
+}

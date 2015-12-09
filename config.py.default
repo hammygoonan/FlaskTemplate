@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""config.py.default: default config file."""
+
+
+class BaseConfig(object):
+
+    """Base Flask config variabels."""
+
+    DEBUG = False
+    SECRET_KEY = 'REPLACE WITH VERY SECRET KEY'
+    DOMAIN_NAME = 'http://example.com/'
+    SMTP_HOST = 'localhost'
+    SMTP_PORT = None
+    SMTP_USER = None
+    SMTP_PASSWORD = None
+    SMTP_SSL = False
+    SMTP_REQUIRE_PASSWORD = False
+    ADMIN_EMAIL = 'hello@example.com'
+    CONTACT_EMAIL = 'hello@example.com'
+    LOG_FILE = 'requests.log'
+
+
+class TestConfig(BaseConfig):
+
+    """Test Flask config variabels."""
+
+    DEBUG = True
+    TESTING = True
+    PRESERVE_CONTEXT_ON_EXCEPTION = False
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+
+
+class DevelopmentConfig(BaseConfig):
+
+    """Development Flask config variabels."""
+
+    DEBUG = True
+
+
+class ProductionConfig(BaseConfig):
+
+    """Production Flask config variabels."""
+
+    DEBUG = False

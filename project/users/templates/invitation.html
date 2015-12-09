@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Invite someone to join</h1>
+{% for message in get_flashed_messages() %}
+    <p class="has-error">{{ message }}</p>
+{% endfor %}
+<form id="invitation-form" method="post" action="{{ url_for('users.invitation') }}">
+    <div class="form-group">
+        <label for="email">Enter the email address of the person you would like to invite:</label>
+        <input class="form-control" id="email" name="email" type="text" placeholder="hello@example.com" />
+    </div>
+    <button class="form-control btn btn-warning" type="submit">Submit</button>
+</form>
+{% endblock %}

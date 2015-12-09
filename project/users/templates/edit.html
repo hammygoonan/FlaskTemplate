@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Edit your details:</h1>
+{% for message in get_flashed_messages() %}
+    <p class="has-error">{{ message }}</p>
+{% endfor %}
+<form id="login-form" method="post" action="{{ url_for('users.edit') }}">
+    <div class="form-group">
+        <label for="email">Email:</label>
+        <input class="form-control" id="email" name="email" value="{{ user.email }}" type="text" placeholder="Your Email Address" />
+    </div>
+    <div class="form-group">
+        <label for="password">Password:</label>
+        <input class="form-control" id="password" name="password" type="password" placeholder="Password" />
+    </div>
+    <button type="submit" class="form-control btn btn-warning">Submit</button>
+</form>
+{% endblock %}
