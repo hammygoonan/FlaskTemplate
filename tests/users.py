@@ -58,7 +58,7 @@ class UsersTestCase(BaseTestCase):
                 ),
             )
             self.assertEqual(response.status_code, 200)
-            self.assertIn(b'Invalid username or password.', response.data)
+            self.assertIn(b'Your login details are incorrect.', response.data)
 
 # Register page tests
     def test_register_page(self):
@@ -133,6 +133,33 @@ class UsersTestCase(BaseTestCase):
         )
         self.assertIn('Thanks for signing up. You can now login below.',
                       str(response.data))
+
+    def test_email_is_unique_when_registering(self):
+        self.client.post(
+            '/users/register',
+            data={
+                'email': self.new_email,
+                'password': self.new_password
+            },
+            follow_redirects=True
+        )
+        response = self.client.post(
+            '/users/register',
+            data={
+                'email': self.new_email,
+                'password': self.new_password
+            },
+            follow_redirects=True
+        )
+        self.assertIn('There is already an account with this email address',
+                      str(response.data))
+
+    def test_logout(self):
+        """Test user can logout."""
+        with self.client:
+            self.login()
+            response = self.client.get('/users/logout', follow_redirects=True)
+            self.assertIn(b'You were logged out', response.data)
 
     # @patch.object(Emailer, 'send')
     # def test_forgot_password_page(self, mock_send):
@@ -228,12 +255,6 @@ class UsersTestCase(BaseTestCase):
     #         self.assertEqual(response.status_code, 200)
     #         self.assertIn(b'Edit your details', response.data)
     #
-    # def test_logout(self):
-    #     """Test user can logout."""
-    #     with self.client:
-    #         self.login()
-    #         response = self.client.get('/users/logout', follow_redirects=True)
-    #         self.assertIn(b'You were logged out', response.data)
     #
     # def test_logout_route_requires_login(self):
     #     """Ensure that logout page requires user login."""

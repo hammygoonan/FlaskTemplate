@@ -1,0 +1,13 @@
+{% if form.errors %}
+    <div class="row">
+        <div class="medium-8 large-6 columns">
+            <ul class="alert callout">
+                {% for errors, messages in form.errors.items() %}
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endif %}

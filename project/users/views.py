@@ -12,6 +12,7 @@ from project import app, db, bcrypt, random_str
 from project.models import User, ResetPassword
 from project.emailer.emailer import Emailer
 from .forms import RegistationForm
+from .forms import LoginForm
 
 users_blueprint = Blueprint(
     'users', __name__,
@@ -22,18 +23,12 @@ users_blueprint = Blueprint(
 @users_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
     """Login route."""
-    if request.method == "POST":
-        user = User.query.filter_by(email=request.form['email']).first()
-        if user is not None and bcrypt.check_password_hash(
-            user.password, request.form['password']
-        ):
-            login_user(user)
-            return redirect('/')
+    form = LoginForm()
+    if form.validate_on_submit():
+        login_user(form.user)
+        return redirect('/')
 
-        else:
-            flash('Invalid username or password.')
-
-    return render_template('login.html')
+    return render_template('login.html', form=form)
 
 
 @users_blueprint.route('/logout')
