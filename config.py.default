@@ -18,7 +18,7 @@ class BaseConfig(object):
     SMTP_REQUIRE_PASSWORD = False
     ADMIN_EMAIL = 'hello@example.com'
     CONTACT_EMAIL = 'hello@example.com'
-    LOG_FILE = 'requests.log'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
 class TestConfig(BaseConfig):
@@ -29,6 +29,7 @@ class TestConfig(BaseConfig):
     TESTING = True
     PRESERVE_CONTEXT_ON_EXCEPTION = False
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    WTF_CSRF_ENABLED = False
 
 
 class DevelopmentConfig(BaseConfig):

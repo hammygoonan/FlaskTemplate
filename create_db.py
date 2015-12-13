@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 """create_db.py: Create database and a range of dummy data for testing."""
 
+from datetime import datetime, timedelta
 
 from project import db
-from datetime import datetime, timedelta
 from project.models import User, ResetPassword
 
 

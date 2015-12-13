@@ -1,24 +1,50 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Register</h1>
-{% for message in get_flashed_messages() %}
-	<p class="has-error">{{ message }}</p>
-{% endfor %}
-<form id="login-form" method="post" action="{{ url_for('users.register') }}">
-    <div class="form-group">
-        <label for="email">Email:</label>
-        <input class="form-control" id="email" name="email" type="text" placeholder="Your Email Address" />
+<div class="row register">
+    <div class="large-12 columns">
+        <h1>Register</h1>
+        {% if form.errors %}
+            <div class="row">
+                <div class="medium-8 large-6 columns">
+                    <ul class="alert callout">
+                        {% for errors, messages in form.errors.items() %}
+                            {% for message in messages %}
+                                <li>{{ message }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+        <form id="register-form" method="POST" action="{{ url_for('users.register') }}">
+            {{ form.hidden_tag() }}
+            <div class="row">
+                <div class="medium-8 large-6 columns">
+                    {{ form.email.label }}
+                    {% if form.errors['email'] %}
+                        {{ form.email(class_='alert', required='required') }}
+                    {% else %}
+                        {{ form.email(required='required') }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="medium-8 large-6 columns">
+                    {{ form.password.label }}
+                    {% if form.errors['password'] %}
+                        {{ form.password(class_='alert', required='required') }}
+                    {% else %}
+                        {{ form.password(required='required') }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="medium-6 columns">
+                    <input type="submit" class="button" value="Submit">
+                </div>
+            </div>
+        </form>
     </div>
-    <div class="form-group">
-        <label for="password">Password:</label>
-        <input class="form-control" id="password" name="password" type="password" placeholder="Password" />
-    </div>
-    <div class="form-group">
-        <label for="invite">Invitation code:</label>
-        <input class="form-control" id="invite" name="invite" type="text" placeholder="Invitation code" />
-    </div>
-    <div class="form-group">
-    <button type="submit" class="form-control btn btn-warning">Submit</button>
-</form>
+</div>
 {% endblock %}

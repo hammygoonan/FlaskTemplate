@@ -1,0 +1,10 @@
+.register{
+    input{
+        &.alert{
+            @include form-input-error;
+        }
+    }
+    ul{
+        list-style-type: none;
+    }
+}

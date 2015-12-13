@@ -1,24 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <title>Flask Template</title>
-    <link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet" />
-    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet" />
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}">
-</head>
-
-<body>
-    <div class="container">
+<!doctype html>
+<html class="no-js" lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>FlaskTemplate</title>
+        <link href="{{ url_for('static', filename='app.css') }}" rel="stylesheet" />
+    </head>
+    <body>
         {% block content %}{% endblock %}
-    </div>
-    <footer>
-        {% include 'user_menu.html' %}
-        {% include 'footer.html' %}
-    </footer>
-</body>
+        <script src="{{ url_for('static', filename='bower_components/jquery/dist/jquery.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='bower_components/foundation-sites/dist/foundation.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    </body>
 </html>

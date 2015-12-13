@@ -2,13 +2,16 @@
 # -*- coding: utf-8 -*-
 """users/views.py: User views."""
 
+from datetime import datetime, timedelta
 from flask import render_template, Blueprint, request, flash, redirect,\
     url_for
 from flask.ext.login import login_user, login_required, logout_user,\
     current_user
-from project import app, db, bcrypt, random_str, is_email
+
+from project import app, db, bcrypt, random_str
 from project.models import User, ResetPassword
-from datetime import datetime, timedelta
+from project.emailer.emailer import Emailer
+from .forms import RegistationForm
 
 users_blueprint = Blueprint(
     'users', __name__,
@@ -45,23 +48,17 @@ def logout():
 @users_blueprint.route('/register', methods=['GET', 'POST'])
 def register():
     """Register route."""
-    if request.method == "POST":
-        if(
-            not request.form.get('email') or
-            not request.form.get('password') or
-            not request.form.get('invite')
-        ):
-            flash('Please ensure you fill in all fields.')
-            return render_template('register.html')
-        else:
-            db.session.add(
-                User(request.form['email'], request.form['password'])
-            )
-            db.session.commit()
-            flash('Thanks for signing up! Please login below.')
-            return redirect(url_for('users.login'))
+    form = RegistationForm()
 
-    return render_template('register.html')
+    if form.validate_on_submit():
+        db.session.add(
+            User(request.form['email'], request.form['password'])
+        )
+        db.session.commit()
+        flash('Thanks for signing up. You can now login below.')
+        return redirect(url_for('users.login'))
+
+    return render_template('register.html', form=form)
 
 
 @users_blueprint.route('/forgot_password', methods=['GET', 'POST'])

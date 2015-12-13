@@ -2,21 +2,20 @@
 # -*- coding: utf-8 -*-
 """Module init file. Runs application."""
 
+import random
+import string
+
 from flask import Flask, render_template
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.bcrypt import Bcrypt
 from flask.ext.login import LoginManager
-import random
-import string
-import re
-import os
 
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-# app.config.from_object(os.environ['APP_SETTINGS'])
+app.config.from_object('config.DevelopmentConfig')
 db = SQLAlchemy(app)
 
 
@@ -28,13 +27,7 @@ def random_str(N=10):
     ) for _ in range(N))
 
 
-def is_email(email):
-    """Validate that an email is syntactially correct."""
-    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-        return False
-    return True
-
-# BLueprints
+# Blueprints
 from project.users.views import users_blueprint
 
 app.register_blueprint(users_blueprint, url_prefix='/users')
@@ -58,6 +51,7 @@ def page_not_found(e):
     """Render 404 page template."""
     return render_template('404.html'), 404
 
+
 @app.route("/")
 def hello():
-    return "Flask Template"
+    return render_template('home.html')
