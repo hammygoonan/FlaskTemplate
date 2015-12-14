@@ -84,6 +84,7 @@ class UsersTestCase(BaseTestCase):
                           response.data)
 
     def test_user_cannt_register_without_password(self):
+        """Test password is required to register."""
         with self.client:
             response = self.client.post(
                 '/users/register',
@@ -97,6 +98,7 @@ class UsersTestCase(BaseTestCase):
                           response.data)
 
     def test_register_email_validation(self):
+        """Test registration has valid email address."""
         with self.client:
             response = self.client.post(
                 '/users/register',
@@ -110,6 +112,7 @@ class UsersTestCase(BaseTestCase):
                           response.data)
 
     def test_password_at_least_eight_char(self):
+        """Test password length when registering."""
         with self.client:
             response = self.client.post(
                 '/users/register',
@@ -137,6 +140,7 @@ class UsersTestCase(BaseTestCase):
                       str(response.data))
 
     def test_email_is_unique_when_registering(self):
+        """Test email is not already in use when registering."""
         self.client.post(
             '/users/register',
             data={
@@ -302,6 +306,7 @@ class UsersTestCase(BaseTestCase):
             )
 
     def test_user_email_valid_when_editing(self):
+        """Test users email is valid when editing it."""
         with self.client:
             self.login()
             # no email address
@@ -317,6 +322,7 @@ class UsersTestCase(BaseTestCase):
                           response.data)
 
     def test_new_email_is_different(self):
+        """Test edited email is unique."""
         with self.client:
             self.login()
             # no email address
@@ -351,7 +357,7 @@ class UsersTestCase(BaseTestCase):
             ))
 
     def test_cannt_change_password_if_less_than_eight_char(self):
-        """Test the user can update email."""
+        """Test password length when editing."""
         with self.client:
             self.login()
             response = self.client.post(
