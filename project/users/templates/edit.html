@@ -1,19 +1,47 @@
 {% extends "base.html" %}
-
+{% block title %}Edit details{% endblock %}
 {% block content %}
-<h1>Edit your details:</h1>
-{% for message in get_flashed_messages() %}
-    <p class="has-error">{{ message }}</p>
-{% endfor %}
-<form id="login-form" method="post" action="{{ url_for('users.edit') }}">
-    <div class="form-group">
-        <label for="email">Email:</label>
-        <input class="form-control" id="email" name="email" value="{{ user.email }}" type="text" placeholder="Your Email Address" />
-    </div>
-    <div class="form-group">
-        <label for="password">Password:</label>
-        <input class="form-control" id="password" name="password" type="password" placeholder="Password" />
-    </div>
-    <button type="submit" class="form-control btn btn-warning">Submit</button>
-</form>
+<div class="row edit-user">
+    <div class="large-12 columns">
+        <h1>Edit your details:</h1>
+        {% include 'success_messages.html' %}
+        {% include 'form_errors.html' %}
+        <h2>Edit your email</h2>
+        <form id="edit-email-form" method="post" action="{{ url_for('users.edit_email') }}">
+            {{ email_form.hidden_tag() }}
+            <div class="row">
+                <div class="medium-8 large-6 columns">
+                    {{ email_form.email.label }}
+                    {% if email_form.errors['email'] %}
+                        {{ email_form.email(class_='alert', required='required') }}
+                    {% else %}
+                        {{ email_form.email(required='required', value=current_user.email) }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="medium-6 columns">
+                    <input type="submit" class="button" value="Submit">
+                </div>
+            </div>
+        </form>
+        <h2>Edit your password</h2>
+        <form id="edit-password-form" method="post" action="{{ url_for('users.edit_password') }}">
+            {{ password_form.hidden_tag() }}
+            <div class="row">
+                <div class="medium-8 large-6 columns">
+                    {{ password_form.password.label }}
+                    {% if password_form.errors['password'] %}
+                        {{ password_form.password(class_='alert', required='required') }}
+                    {% else %}
+                        {{ password_form.password(required='required') }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="medium-6 columns">
+                    <input type="submit" class="button" value="Submit">
+                </div>
+            </div>
+        </form>
 {% endblock %}

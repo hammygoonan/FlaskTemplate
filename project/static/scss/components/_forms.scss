@@ -1,4 +1,4 @@
-.register{
+.register, .edit-user, .login{
     input{
         &.alert{
             @include form-input-error;

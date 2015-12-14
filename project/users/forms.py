@@ -112,12 +112,60 @@ class LoginForm(Form):
         return True
 
 
-class EditForm(Form):
+class EditEmailForm(Form):
 
     """User edit form."""
 
-    email = EmailField('email', validators=[DataRequired()])
-    password = PasswordField('password', validators=[DataRequired()])
+    email = EmailField(
+        'Email',
+        validators=[
+            DataRequired(
+                message="Please provide an email address."
+            ),
+            Email(
+                message="Please provide a valid email address."
+            )
+        ]
+    )
+
+    def __init__(self, *args, **kwargs):
+        Form.__init__(self, *args, **kwargs)
+        self.user = None
+
+    def validate(self):
+        # Standard Validation
+        rv = Form.validate(self)
+        if not rv:
+            return False
+
+        # user validation
+        user = User.query.filter_by(email=self.email.data).first()
+        if user:
+            self.email.errors.append(
+                'There is already an account with this email address.'
+            )
+            return False
+
+        self.user = user
+        return True
+
+
+class EditPasswordForm(Form):
+
+    """User edit form."""
+
+    password = PasswordField(
+        'Password',
+        validators=[
+            DataRequired(
+                message="Please provide a password."
+            ),
+            Length(
+                min=8,
+                message="Password must be at least eight characters long."
+            )
+        ]
+    )
 
 
 class ResetPassword(Form):

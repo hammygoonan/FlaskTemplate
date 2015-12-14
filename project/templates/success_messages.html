@@ -1,9 +1,15 @@
 {% with messages = get_flashed_messages() %}
     {% if messages %}
-        <ul class="alert success">
-            {% for message in messages %}
-                <li>{{ message }}</li>
-            {% endfor %}
-        </ul>
+        <div class="row">
+            <div class="medium-8 large-6 columns">
+                <div class="callout success">
+                    <ul>
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
     {% endif %}
 {% endwith %}

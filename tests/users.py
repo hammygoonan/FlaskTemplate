@@ -36,6 +36,7 @@ class UsersTestCase(BaseTestCase):
         response = self.client.get('/users/login')
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Login', response.data)
+        self.assertIn(b'<title>Login', response.data)
 
     def test_can_login(self):
         """Test user can login."""
@@ -66,6 +67,7 @@ class UsersTestCase(BaseTestCase):
         response = self.client.get('/users/register')
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Register', response.data)
+        self.assertIn(b'<title>Register', response.data)
 
     def test_user_cannt_register_without_email(self):
         """Check cannot register without email."""
@@ -161,6 +163,11 @@ class UsersTestCase(BaseTestCase):
             response = self.client.get('/users/logout', follow_redirects=True)
             self.assertIn(b'You were logged out', response.data)
 
+    def test_logout_route_requires_login(self):
+        """Ensure that logout page requires user login."""
+        response = self.client.get('/users/logout', follow_redirects=True)
+        self.assertIn(b'Please login to view that page.', response.data)
+
     # @patch.object(Emailer, 'send')
     # def test_forgot_password_page(self, mock_send):
     #     """Test forgot password page with mocked Emailer."""
@@ -247,139 +254,118 @@ class UsersTestCase(BaseTestCase):
     #         self.assertTrue(b'That link has expired. Please reset your ' +
     #                         b'password again.', response.data)
     #
-    # def test_edit_page(self):
-    #     """Test user edit page."""
-    #     with self.client:
-    #         self.login()
-    #         response = self.client.get('/users/edit')
-    #         self.assertEqual(response.status_code, 200)
-    #         self.assertIn(b'Edit your details', response.data)
-    #
-    #
-    # def test_logout_route_requires_login(self):
-    #     """Ensure that logout page requires user login."""
-    #     response = self.client.get('/users/logout', follow_redirects=True)
-    #     self.assertIn(b'Please login to view that page.', response.data)
-    #
-    # def test_user_can_change_email(self):
-    #     """Test the user can update email."""
-    #     with self.client:
-    #         response = self.client.post(
-    #             '/users/login',
-    #             data={
-    #                 'email': self.email,
-    #                 'password': self.password
-    #             },
-    #             follow_redirects=True
-    #         )
-    #         self.assertTrue(current_user.email == self.email)
-    #         # update email
-    #         response = self.client.post(
-    #             '/users/edit',
-    #             data={
-    #                 'email': self.new_email,
-    #                 'password': ''
-    #             },
-    #             follow_redirects=True
-    #         )
-    #         # check email has been updated
-    #         self.assertTrue(current_user.email ==
-    #                         self.new_email)
-    #         # make sure password hasn't been updated
-    #         password = bcrypt.check_password_hash(
-    #             current_user.password, self.password
-    #         )
-    #         self.assertTrue(password)
-    #         # check flash message
-    #         self.assertIn(b'Your details have been updated', response.data)
-    #
-    # def test_user_can_change_password(self):
-    #     """Test that user can change password."""
-    #     with self.client:
-    #         self.login()
-    #         user_password = bcrypt.check_password_hash(
-    #             current_user.password, self.password
-    #         )
-    #         self.assertTrue(user_password)
-    #         response = self.client.post(
-    #             '/users/edit',
-    #             data={
-    #                 'email': self.email,
-    #                 'password': self.new_password
-    #             },
-    #             follow_redirects=True
-    #         )
-    #         # check password is updated
-    #         new_password = bcrypt.check_password_hash(
-    #             current_user.password, 'new_password'
-    #         )
-    #         self.assertTrue(new_password)
-    #         # check email remains the same
-    #         self.assertTrue(current_user.email ==
-    #                         self.email)
-    #         # check flash message
-    #         self.assertIn(b'Your details have been updated', response.data)
-    #
-    # def test_user_unique_when_editing(self):
-    #     """Test that email being edited is unique and email is not updated."""
-    #     with self.client:
-    #         self.login()
-    #         self.assertTrue(current_user.email == self.email)
-    #         response = self.client.post(
-    #             '/users/edit',
-    #             data={
-    #                 'email': self.other_email,
-    #                 'password': ''
-    #             },
-    #             follow_redirects=True
-    #         )
-    #         # check email has not been updated
-    #         self.assertTrue(current_user.email ==
-    #                         self.email)
-    #         # display flash message
-    #         self.assertIn(b'That email address is already in use.',
-    #                       response.data)
-    #
-    # def test_user_email_valid_when_editing(self):
-    #     with self.client:
-    #         self.login()
-    #         # no email address
-    #         response = self.client.post(
-    #             '/users/edit',
-    #             data={
-    #                 'email': '',
-    #                 'password': ''
-    #             },
-    #             follow_redirects=True
-    #         )
-    #         # display flash message
-    #         self.assertIn(b'Please enter a valid email address.',
-    #                       response.data)
-    #         # invalid email address
-    #         response = self.client.post(
-    #             '/users/edit',
-    #             data={
-    #                 'email': 'not an email',
-    #                 'password': ''
-    #             },
-    #             follow_redirects=True
-    #         )
-    #         # display flash message
-    #         self.assertIn(b'Please enter a valid email address.',
-    #                       response.data)
-    #         # change email but not password
-    #         response = self.client.post(
-    #             '/users/edit',
-    #             data={
-    #                 'email': '',
-    #                 'password': 'new password'
-    #             },
-    #             follow_redirects=True
-    #         )
-    #         # display flash message
-    #         self.assertIn(b'Please enter a valid email address.',
-    #                       response.data)
-    #
+    def test_edit_page(self):
+        """Test user edit page."""
+        with self.client:
+            self.login()
+            response = self.client.get('/users/edit')
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(b'Edit your email', response.data)
+            self.assertIn(b'Edit your password', response.data)
+            self.assertIn(b'<title>Edit details', response.data)
+
+    def test_user_can_change_email(self):
+        """Test the user can update email."""
+        with self.client:
+            self.login()
+            response = self.client.post(
+                '/users/edit/email',
+                data={
+                    'email': self.new_email,
+                },
+                follow_redirects=True
+            )
+            self.assertTrue(current_user.email == self.new_email)
+            self.assertIn(
+                b'Your email address has been updated.',
+                response.data
+            )
+
+    def test_email_unique_when_editing(self):
+        """Test that email being edited is unique and email is not updated."""
+        with self.client:
+            self.login()
+            response = self.client.post(
+                '/users/edit/email',
+                data={
+                    'email': self.other_email
+                },
+                follow_redirects=True
+            )
+            # check email has not been updated
+            self.assertTrue(current_user.email ==
+                            self.email)
+            # display flash message
+            self.assertIn(
+                b'There is already an account with this email address.',
+                response.data
+            )
+
+    def test_user_email_valid_when_editing(self):
+        with self.client:
+            self.login()
+            # no email address
+            response = self.client.post(
+                '/users/edit/email',
+                data={
+                    'email': 'Invalidemailaddress'
+                },
+                follow_redirects=True
+            )
+            # display flash message
+            self.assertIn(b'Please provide a valid email address.',
+                          response.data)
+
+    def test_new_email_is_different(self):
+        with self.client:
+            self.login()
+            # no email address
+            response = self.client.post(
+                '/users/edit/email',
+                data={
+                    'email': self.email
+                },
+                follow_redirects=True
+            )
+            # display flash message
+            self.assertIn(b'No changes have been made to your email address.',
+                          response.data)
+
+    def test_user_can_change_password(self):
+        """Test the user can update email."""
+        with self.client:
+            self.login()
+            response = self.client.post(
+                '/users/edit/password',
+                data={
+                    'password': self.new_password,
+                },
+                follow_redirects=True
+            )
+            self.assertIn(
+                b'Your password has been updated.',
+                response.data
+            )
+            self.assertTrue(bcrypt.check_password_hash(
+                current_user.password, self.new_password
+            ))
+
+    def test_cannt_change_password_if_less_than_eight_char(self):
+        """Test the user can update email."""
+        with self.client:
+            self.login()
+            response = self.client.post(
+                '/users/edit/password',
+                data={
+                    'password': '1234',
+                },
+                follow_redirects=True
+            )
+            self.assertIn(
+                b'Password must be at least eight characters long.',
+                response.data
+            )
+
     def login(self):
         """Login to site."""
         return self.client.post(

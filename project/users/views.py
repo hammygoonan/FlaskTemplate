@@ -4,7 +4,7 @@
 
 from datetime import datetime, timedelta
 from flask import render_template, Blueprint, request, flash, redirect,\
-    url_for
+    url_for, session
 from flask.ext.login import login_user, login_required, logout_user,\
     current_user
 
@@ -13,6 +13,8 @@ from project.models import User, ResetPassword
 from project.emailer.emailer import Emailer
 from .forms import RegistationForm
 from .forms import LoginForm
+from .forms import EditPasswordForm
+from .forms import EditEmailForm
 
 users_blueprint = Blueprint(
     'users', __name__,
@@ -120,79 +122,53 @@ def reset_password(path):
     return render_template('reset_password.html', user=reset.user_id)
 
 
-@users_blueprint.route('/edit', methods=['GET', 'POST'])
+@users_blueprint.route('/edit', methods=['GET'])
 @login_required
 def edit():
-    """Edit user route."""
-    if request.method == "POST":
-        email = request.form.get('email')
-        if not email or not is_email(email):
-            flash('Please enter a valid email address.')
-            return render_template('edit.html', user=current_user)
-        user = User.query.filter_by(email=email).first()
-        # if email is already taken
-        if user and user.id != current_user.id:
-            flash('That email address is already in use.')
-        else:
-            user = User.query.get(current_user.id)
-            # update password if changed
-            if request.form['password'] != '':
-                user.password = bcrypt.generate_password_hash(
-                    request.form['password']
-                )
-            # update email if changed
-            if current_user.email != request.form['email']:
-                user.email = request.form['email']
-            db.session.commit()
-            flash('Your details have been updated')
-    return render_template('edit.html', user=current_user)
+    email_form = EditEmailForm()
+    password_form = EditPasswordForm()
+    return render_template(
+        'edit.html',
+        email_form=email_form,
+        password_form=password_form
+    )
 
 
-@users_blueprint.route('/invitation', methods=['GET', 'POST'])
+@users_blueprint.route('/edit/email', methods=['POST'])
 @login_required
-def invitation():
-    """Invitation route."""
-    if request.method == "POST":
-        email = request.form.get('email')
-        if not is_email(email):
-            flash('That email doesn\'t look like an email address...')
-            return render_template('invitation.html')
-        if not email:
-            flash('Aren\'t you forgetting something?')
-            return render_template('invitation.html')
-        invite = Invitation.query.filter_by(email=email).first()
-        current_user = User.query.filter_by(email=email).first()
-        if invite or current_user:
-            flash('{} has already been sent an invitation.'.format(email))
-            return render_template('invitation.html')
-        code = random_str()
-        db.session.add(Invitation(email, code))
-        db.session.commit()
-        invite_url = '{}users/register'.format(
-            app.config.get('DOMAIN_NAME'))
-        flash('{} has been sent an invitation.'.format(email))
+def edit_email():
+    """Edit user route."""
+    form = EditEmailForm()
 
-        # send email
-        message = """\
-        <html>
-            <head></head>
-            <body>
-                <p>Hello,</p>
-                <p>Someone has been kind enough to send you an
-                invitation to {}.</p>
-                <p>To activate your account go to:
-                <a href="{}">{}</a>. and end the code '{}'</p>
-                <p>Please note that replies to this email are unlikely
-                to be read in a timely fashion if at all.</p>
-            </body>
-        </html>
-        """.format(app.config.get('DOMAIN_NAME'),
-                   invite_url, invite_url, code)
-        email = Emailer(
-            email,
-            app.config.get('ADMIN_EMAIL'),
-            '{} invitation'.format(app.config.get('DOMAIN_NAME')),
-            message
+    if request.form['email'] == current_user.email:
+        flash('No changes have been made to your email address.')
+        return redirect(url_for('users.edit'))
+
+    if form.validate_on_submit():
+        current_user.email = request.form['email']
+        db.session.commit()
+        session.pop('form_errors', None)
+        flash('Your email address has been updated.')
+
+    else:
+        session['form_errors'] = form.errors
+
+    return redirect(url_for('users.edit'))
+
+
+@users_blueprint.route('/edit/password', methods=['POST'])
+@login_required
+def edit_password():
+    """Edit user route."""
+    form = EditPasswordForm()
+
+    if form.validate_on_submit():
+        current_user.password = bcrypt.generate_password_hash(
+            request.form['password']
         )
-        email.send()
-    return render_template('invitation.html')
+        db.session.commit()
+        session.pop('form_errors', None)
+        flash('Your password has been updated.')
+    else:
+        session['form_errors'] = form.errors
+    return redirect(url_for('users.edit'))
