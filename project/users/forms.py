@@ -168,5 +168,24 @@ class EditPasswordForm(Form):
     )
 
 
+class ForgotPassword(EditEmailForm):
+    def validate(self):
+        # Standard Validation
+        rv = Form.validate(self)
+        if not rv:
+            return False
+
+        # user validation
+        user = User.query.filter_by(email=self.email.data).first()
+        if not user:
+            self.email.errors.append(
+                'We don\'t have an account with that email address.'
+            )
+            return False
+
+        self.user = user
+        return True
+
+
 class ResetPassword(Form):
     pass

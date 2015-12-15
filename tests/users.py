@@ -172,37 +172,64 @@ class UsersTestCase(BaseTestCase):
         response = self.client.get('/users/logout', follow_redirects=True)
         self.assertIn(b'Please login to view that page.', response.data)
 
-    # @patch.object(Emailer, 'send')
-    # def test_forgot_password_page(self, mock_send):
-    #     """Test forgot password page with mocked Emailer."""
-    #     response = self.client.get('/users/forgot_password')
-    #     self.assertEqual(response.status_code, 200)
-    #     self.assertIn(b'Forgot Password', response.data)
-    #     with self.client:
-    #         response = self.client.post(
-    #             '/users/forgot_password',
-    #             data={
-    #                 'email': self.email,
-    #             },
-    #             follow_redirects=True
-    #         )
-    #         self.assertIn('Your password has been reset, please check your ' +
-    #                       'email.', str(response.data))
-    #         user = User.query.filter_by(email=self.email)\
-    #             .first()
-    #         self.assertTrue(
-    #             ResetPassword.query.filter_by(user_id=user.id)
-    #         )
-    #     with self.client:
-    #         response = self.client.post(
-    #             '/users/forgot_password',
-    #             data={
-    #                 'email': self.err_email,
-    #             },
-    #             follow_redirects=True
-    #         )
-    #         self.assertIn('Sorry, we don&#39;t have that email address in ' +
-    #                       'our system.', str(response.data))
+    def test_forgot_password_page(self):
+        """Test that forgot password page exists."""
+        response = self.client.get('/users/forgot_password',
+                                   follow_redirects=True)
+        self.assert200(response)
+        self.assertIn(b'Forgot Password', response.data)
+        self.assertIn(b'<title>Forgot Password', response.data)
+
+    def test_forgot_password_has_valid_email(self):
+        response = self.client.post(
+            '/users/forgot_password',
+            data={
+                'email': "Not an email",
+            },
+            follow_redirects=True
+        )
+        self.assertIn(b'Please provide a valid email address.', response.data)
+
+    def test_forgot_password_email_in_database(self):
+        response = self.client.post(
+            '/users/forgot_password',
+            data={
+                'email': self.new_email,
+            },
+            follow_redirects=True
+        )
+        self.assertIn(
+            b'We don&#39;t have an account with that email address.',
+            response.data
+        )
+
+    @patch.object(Emailer, 'send')
+    def test_entry_made_in_forgot_password_database(self, mock_send):
+        self.client.post(
+            '/users/forgot_password',
+            data={
+                'email': self.email,
+            },
+            follow_redirects=True
+        )
+        user = User.query.filter_by(email=self.email).first()
+        entry = ResetPassword.query.filter_by(user=user)
+        self.assertTrue(entry)
+
+    @patch.object(Emailer, 'send')
+    def test_flash_message_for_forgot_password(self, mock_send):
+        response = self.client.post(
+            '/users/forgot_password',
+            data={
+                'email': self.email,
+            },
+            follow_redirects=True
+        )
+        self.assertIn(
+            b'Your password has been reset, please check your email.',
+            response.data
+        )
+
     #
     # def test_reset_password_page(self):
     #     """Test reset password."""

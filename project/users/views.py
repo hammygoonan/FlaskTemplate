@@ -15,6 +15,7 @@ from .forms import RegistationForm
 from .forms import LoginForm
 from .forms import EditPasswordForm
 from .forms import EditEmailForm
+from .forms import ForgotPassword
 
 users_blueprint = Blueprint(
     'users', __name__,
@@ -61,41 +62,42 @@ def register():
 @users_blueprint.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
     """Forgot password route."""
-    if request.method == "POST":
+    form = ForgotPassword()
+
+    if form.validate_on_submit():
+        code = random_str(25)
+        expires = datetime.utcnow() + timedelta(hours=24)
+
         email = request.form.get('email')
         user = User.query.filter_by(email=email).first()
-        if not user:
-            flash('Sorry, we don\'t have that email address in our system.')
-            return render_template('forgot_password.html')
-        else:
-            code = random_str(25)
-            expires = datetime.utcnow() + timedelta(hours=24)
-            db.session.add(ResetPassword(user, code, expires))
-            db.session.commit()
-            reset_url = '{}users/reset_password/{}'.format(
-                app.config['DOMAIN_NAME'],
-                code
-            )
-            # send email
-            message = """\
-            <html>
-                <head></head>
-                <body>
-                    <p>Hello,</p>
-                    <p>Someone has requested an email reset.</p>
-                    <p>If that was you, please go to <a href="{}">{}</a>.</p>
-                    <p>If it was not you, please just ignore this email.</p>
-                    <p>Please note that replies to this email are unlikely to
-                    be read in a timely fashion if at all.</p>
-                </body>
-            </html>
-            """.format(reset_url, reset_url)
-            email = Emailer(user.email, app.config.get('ADMIN_EMAIL'),
-                            'Email reset', message)
-            email.send()
-            flash('Your password has been reset, please check your email.')
 
-    return render_template('forgot_password.html')
+        db.session.add(ResetPassword(user, code, expires))
+        db.session.commit()
+
+        reset_url = '{}users/reset_password/{}'.format(
+            app.config['DOMAIN_NAME'],
+            code
+        )
+        # send email
+        message = """\
+        <html>
+            <head></head>
+            <body>
+                <p>Hello,</p>
+                <p>Someone has requested an email reset.</p>
+                <p>If that was you, please go to <a href="{}">{}</a>.</p>
+                <p>If it was not you, please just ignore this email.</p>
+                <p>Please note that replies to this email are unlikely to
+                be read in a timely fashion, if at all.</p>
+            </body>
+        </html>
+        """.format(reset_url, reset_url)
+        email = Emailer(user.email, app.config.get('ADMIN_EMAIL'),
+                        'Email reset', message)
+        email.send()
+        flash('Your password has been reset, please check your email.')
+
+    return render_template('forgot_password.html', form=form)
 
 
 @users_blueprint.route('/reset_password/<path:path>', methods=['GET', 'POST'])
