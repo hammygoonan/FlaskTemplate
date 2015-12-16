@@ -2,12 +2,16 @@
 # -*- coding: utf-8 -*-
 """users/forms.py: User forms."""
 
+from datetime import datetime
+
 from flask_wtf import Form
 from wtforms import PasswordField
 from flask_wtf.html5 import EmailField
+from wtforms.fields import HiddenField
 from wtforms.validators import DataRequired, Length, Email
+from flask import url_for
 
-from project.models import User
+from project.models import User, ResetPassword
 from project import bcrypt
 
 
@@ -168,7 +172,7 @@ class EditPasswordForm(Form):
     )
 
 
-class ForgotPassword(EditEmailForm):
+class ForgotPasswordForm(EditEmailForm):
     def validate(self):
         # Standard Validation
         rv = Form.validate(self)
@@ -187,5 +191,44 @@ class ForgotPassword(EditEmailForm):
         return True
 
 
-class ResetPassword(Form):
-    pass
+class ResetPasswordForm(RegistationForm):
+    code = HiddenField('Code', validators=[DataRequired(
+        message="Something is wrong. Please try again and contact the" +
+                " administrator if your issue persists."
+    )])
+
+    def validate(self):
+        # Standard Validation
+        rv = Form.validate(self)
+        if not rv:
+            return False
+
+        # user validation
+        user = User.query.filter_by(email=self.email.data).first()
+        if user is None:
+            self.code.errors.append(
+                'We don\'t have that email address in our system.'
+            )
+            return False
+
+        forgot = ResetPassword.query.filter_by(
+            user=user,
+            code=self.code.data
+        ).first()
+        if forgot is None:
+            self.forgot.errors.append(
+                'There has been no request to reset your password.'
+            )
+            return False
+
+        if datetime.utcnow() > forgot.expires:
+            self.forgot.errors.append(
+                'That reset token has expired. <a href="{}">Click here</a>'
+                ' to send a new reset link.'.format(
+                    url_for('users.forgot_password')
+                )
+            )
+            return False
+
+        self.user = user
+        return True

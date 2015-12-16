@@ -31,6 +31,7 @@ class UsersTestCase(BaseTestCase):
 
         super().setUp()
 
+    # Login page
     def test_login_page(self):
         """Test login page."""
         response = self.client.get('/users/login')
@@ -61,7 +62,7 @@ class UsersTestCase(BaseTestCase):
             self.assertEqual(response.status_code, 200)
             self.assertIn(b'Your login details are incorrect.', response.data)
 
-# Register page tests
+    # Register page tests
     def test_register_page(self):
         """Test register page."""
         response = self.client.get('/users/register')
@@ -160,6 +161,7 @@ class UsersTestCase(BaseTestCase):
         self.assertIn('There is already an account with this email address',
                       str(response.data))
 
+    # logout
     def test_logout(self):
         """Test user can logout."""
         with self.client:
@@ -172,6 +174,7 @@ class UsersTestCase(BaseTestCase):
         response = self.client.get('/users/logout', follow_redirects=True)
         self.assertIn(b'Please login to view that page.', response.data)
 
+    # forgot password
     def test_forgot_password_page(self):
         """Test that forgot password page exists."""
         response = self.client.get('/users/forgot_password',
@@ -230,61 +233,128 @@ class UsersTestCase(BaseTestCase):
             response.data
         )
 
-    #
-    # def test_reset_password_page(self):
-    #     """Test reset password."""
-    #     # should be a 404 if code is not recognised
-    #     response = self.client.get('/users/reset_password/thisisacode')
-    #     self.assert404(response)
-    #     # check user_id is set
-    #     with self.client:
-    #         response = self.client.get('/users/reset_password/resetcode')
-    #         self.assertIn(b'<input type="hidden" name="user_id" value="1" />',
-    #                       response.data)
-    #     # should not update if no password provided
-    #     with self.client:
-    #         response = self.client.post(
-    #             '/users/reset_password/resetcode',
-    #             data={
-    #                 'password': '',
-    #             },
-    #             follow_redirects=True
-    #         )
-    #         self.assert200(response)
-    #         self.assertTrue(b'Sorry, something&#39;s not right here. Did ' +
-    #                         b'you enter and email address?.', response.data)
-    #
-    #     # should update password if code is recongnised
-    #     with self.client:
-    #         response = self.client.post(
-    #             '/users/reset_password/resetcode',
-    #             data={
-    #                 'password': self.new_password,
-    #                 'user_id': 1
-    #             },
-    #             follow_redirects=True
-    #         )
-    #         self.assert200(response)
-    #         self.assertTrue(b'Your password has been reset, please login ' +
-    #                         b'below', response.data)
-    #         # check password has changed
-    #         user = User.query.filter_by(email=self.email)\
-    #             .first()
-    #         self.assertTrue(
-    #             bcrypt.check_password_hash(
-    #                 user.password, self.new_password
-    #             )
-    #         )
-    #     # check it breaks if link has expired.
-    #     with self.client:
-    #         response = self.client.get(
-    #             '/users/reset_password/resetcode2',
-    #             follow_redirects=True
-    #         )
-    #         self.assert200(response)
-    #         self.assertTrue(b'That link has expired. Please reset your ' +
-    #                         b'password again.', response.data)
-    #
+    # reset password
+
+    def test_reset_password_page_exists(self):
+        response = self.client.get('/users/reset_password/resetcode')
+        self.assert200(response)
+        self.assertIn(b'Reset Password', response.data)
+        self.assertIn(b'<title>Reset Password', response.data)
+
+    def test_password_is_required(self):
+        response = self.client.post(
+            '/users/reset_password/resetcode',
+            data={
+                'email': self.email,
+                'password': ''
+            },
+            follow_redirects=True
+        )
+        self.assertIn(b'Please provide a password.', response.data)
+
+    def test_reset_password_page_requires_token(self):
+        response = self.client.get('/users/reset_password/')
+        self.assert404(response)
+
+    def test_reset_password_page_email_must_exist(self):
+        response = self.client.post(
+            '/users/reset_password/resetcode',
+            data={
+                'email': self.new_email,
+                'password': self.password,
+                'code': 'resetcode'
+            },
+            follow_redirects=True
+        )
+        self.assertIn(
+            b'We don&#39;t have that email address in our system.',
+            response.data
+        )
+
+    def test_reset_password_is_long_enough(self):
+        response = self.client.post(
+            '/users/reset_password/resetcode',
+            data={
+                'email': self.email,
+                'password': 'short'
+            },
+            follow_redirects=True
+        )
+        self.assertIn(
+            b'Password must be at least eight characters long.',
+            response.data
+        )
+
+    def test_reset_token_has_not_expired(self):
+        response = self.client.get(
+            '/users/reset_password/resetcode2',
+            follow_redirects=True
+        )
+        self.assertIn(b'Forgot Password', response.data)
+        self.assertIn(
+            b'That reset token has expired.',
+            response.data
+        )
+
+    def test_reset_has_been_requested(self):
+        response = self.client.get(
+            '/users/reset_password/incorrectcode',
+            follow_redirects=True
+        )
+        self.assert404(response)
+
+    def test_password_updated(self):
+        response = self.client.post(
+            '/users/reset_password/resetcode',
+            data={
+                'email': self.email,
+                'password': self.new_password,
+                'code': 'resetcode'
+            },
+            follow_redirects=True
+        )
+        self.assertIn(
+            b'Your password has been updated. Please login below.',
+            response.data
+        )
+        self.assertIn(
+            b'Login',
+            response.data
+        )
+        user = User.query.filter_by(email=self.email).first()
+        self.assertTrue(bcrypt.check_password_hash(
+            user.password, self.new_password
+        ))
+
+    def test_token_deleted_once_used(self):
+        self.client.post(
+            '/users/reset_password/resetcode',
+            data={
+                'email': self.email,
+                'password': self.new_password,
+                'code': 'resetcode'
+            }
+        )
+        token = ResetPassword.query.filter_by(code="resetcode").first()
+        self.assertEqual(None, token)
+
+    def test_reset_fails_if_no_token(self):
+        response = self.client.post(
+            '/users/reset_password/resetcode',
+            data={
+                'email': self.email,
+                'password': self.new_password,
+                'code': ''
+            },
+            follow_redirects=True
+        )
+        self.assertIn(
+            b"Something is wrong. Please try again and contact the" +
+            b" administrator if your issue persists.",
+            response.data
+        )
+
+    # Edit page
     def test_edit_page(self):
         """Test user edit page."""
         with self.client:
@@ -399,6 +469,7 @@ class UsersTestCase(BaseTestCase):
                 response.data
             )
 
+    # helper methods
     def login(self):
         """Login to site."""
         return self.client.post(

@@ -15,7 +15,8 @@ from .forms import RegistationForm
 from .forms import LoginForm
 from .forms import EditPasswordForm
 from .forms import EditEmailForm
-from .forms import ForgotPassword
+from .forms import ForgotPasswordForm
+from .forms import ResetPasswordForm
 
 users_blueprint = Blueprint(
     'users', __name__,
@@ -62,7 +63,7 @@ def register():
 @users_blueprint.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
     """Forgot password route."""
-    form = ForgotPassword()
+    form = ForgotPasswordForm()
 
     if form.validate_on_submit():
         code = random_str(25)
@@ -74,12 +75,9 @@ def forgot_password():
         db.session.add(ResetPassword(user, code, expires))
         db.session.commit()
 
-        reset_url = '{}users/reset_password/{}'.format(
-            app.config['DOMAIN_NAME'],
-            code
-        )
+        reset_url = url_for('users.reset_password', path=code)
         # send email
-        message = """\
+        message = """
         <html>
             <head></head>
             <body>
@@ -103,25 +101,28 @@ def forgot_password():
 @users_blueprint.route('/reset_password/<path:path>', methods=['GET', 'POST'])
 def reset_password(path):
     """Reset password route."""
-    if request.method == "POST":
-        password = request.form.get('password')
-        user = request.form.get('user_id')
-        if password and user:
-            user = User.query.get(user)
-            user.password = bcrypt.generate_password_hash(password)
-            db.session.commit()
-            flash('Your password has been updated. Please login below.')
-            return redirect(url_for('users.login'))
-        else:
-            flash('Sorry, something\'s not right here. Did you enter and '
-                  'email address?.')
-
     reset = ResetPassword.query.filter_by(code=path).first_or_404()
-    # moke sure link not expired
-    if reset.expires < datetime.utcnow():
-        flash('That link has expired. Please reset your password again.')
+    if datetime.utcnow() > reset.expires:
+        error = 'That reset token has expired.'
+        session['form_errors'] = {'error': [error]}
         return redirect(url_for('users.forgot_password'))
-    return render_template('reset_password.html', user=reset.user_id)
+
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        reset.user.password = bcrypt.generate_password_hash(
+            request.form.get('password')
+        )
+        db.session.add(reset.user)
+        db.session.delete(reset)
+        db.session.commit()
+        flash('Your password has been updated. Please login below.')
+        return redirect(url_for('users.login'))
+
+    return render_template(
+        'reset_password.html',
+        form=form,
+        code=reset.code
+    )
 
 
 @users_blueprint.route('/edit', methods=['GET'])

@@ -4,7 +4,7 @@
 
 
 from flask.ext.testing import TestCase
-from project import app, db, random_str
+from project import app, db
 from create_db import create_db
 
 

@@ -1,4 +1,4 @@
-.register, .edit-user, .login{
+.register, .edit-user, .login, .reset-password{
     input{
         &.alert{
             @include form-input-error;
