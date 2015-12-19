@@ -15,15 +15,19 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String, unique=True)
     password = db.Column(db.String)
+    token = db.Column(db.String)
 
-    def __init__(self, email, password):
+    def __init__(self, email, password, token):
         """Initialise model."""
         self.email = email
         self.password = bcrypt.generate_password_hash(password)
+        self.token = token
 
     def is_authenticated(self):
-        """All users are automatically authenticated."""
-        return True
+        """User validated if account has been confirmed."""
+        if self.token is None:
+            return True
+        return False
 
     def is_active(self):
         """All users are automatically active."""

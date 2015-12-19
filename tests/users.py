@@ -63,14 +63,16 @@ class UsersTestCase(BaseTestCase):
             self.assertIn(b'Your login details are incorrect.', response.data)
 
     # Register page tests
-    def test_register_page(self):
+    @patch.object(Emailer, 'send')
+    def test_register_page(self, mock_send):
         """Test register page."""
         response = self.client.get('/users/register')
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Register', response.data)
         self.assertIn(b'<title>Register', response.data)
 
-    def test_user_cannt_register_without_email(self):
+    @patch.object(Emailer, 'send')
+    def test_user_cannt_register_without_email(self, mock_send):
         """Check cannot register without email."""
         with self.client:
             response = self.client.post(
@@ -85,7 +87,8 @@ class UsersTestCase(BaseTestCase):
             self.assertIn(b'Please provide an email address.',
                           response.data)
 
-    def test_user_cannt_register_without_password(self):
+    @patch.object(Emailer, 'send')
+    def test_user_cannt_register_without_password(self, mock_send):
         """Test password is required to register."""
         with self.client:
             response = self.client.post(
@@ -100,7 +103,8 @@ class UsersTestCase(BaseTestCase):
             self.assertIn(b'Please provide a password.',
                           response.data)
 
-    def test_register_password_confirmation(self):
+    @patch.object(Emailer, 'send')
+    def test_register_password_confirmation(self, mock_send):
         """Test password confirm."""
         with self.client:
             response = self.client.post(
@@ -115,7 +119,8 @@ class UsersTestCase(BaseTestCase):
             self.assertIn(b'Your passwords do not match.',
                           response.data)
 
-    def test_register_confirm_password_required(self):
+    @patch.object(Emailer, 'send')
+    def test_register_confirm_password_required(self, mock_send):
         """Test confirm password required on password reset."""
         response = self.client.post(
             '/users/register',
@@ -132,7 +137,8 @@ class UsersTestCase(BaseTestCase):
             response.data
         )
 
-    def test_register_email_validation(self):
+    @patch.object(Emailer, 'send')
+    def test_register_email_validation(self, mock_send):
         """Test registration has valid email address."""
         with self.client:
             response = self.client.post(
@@ -147,7 +153,8 @@ class UsersTestCase(BaseTestCase):
             self.assertIn(b'Please provide a valid email address.',
                           response.data)
 
-    def test_password_at_least_eight_char(self):
+    @patch.object(Emailer, 'send')
+    def test_password_at_least_eight_char(self, mock_send):
         """Test password length when registering."""
         with self.client:
             response = self.client.post(
@@ -162,7 +169,8 @@ class UsersTestCase(BaseTestCase):
             self.assertIn(b'Password must be at least eight characters long.',
                           response.data)
 
-    def test_user_can_create_account(self):
+    @patch.object(Emailer, 'send')
+    def test_user_can_create_account(self, mock_send):
         """Test user can create an account."""
         # correct details
         response = self.client.post(
@@ -174,10 +182,29 @@ class UsersTestCase(BaseTestCase):
             },
             follow_redirects=True
         )
-        self.assertIn('Thanks for signing up. You can now login below.',
+        self.assertIn('Please check your email to for a confirmation link',
                       str(response.data))
 
-    def test_email_is_unique_when_registering(self):
+    @patch.object(Emailer, 'send')
+    def test_new_account_in_database(self, mock_send):
+        """Test new account in database with encrypted password."""
+        self.client.post(
+            '/users/register',
+            data={
+                'email': self.new_email,
+                'password': self.new_password,
+                'confirm_password': self.new_password
+            },
+            follow_redirects=True
+        )
+        user = User.query.filter_by(email=self.new_email).first()
+        self.assertTrue(user)
+        self.assertTrue(bcrypt.check_password_hash(
+            user.password, self.new_password
+        ))
+
+    @patch.object(Emailer, 'send')
+    def test_email_is_unique_when_registering(self, mock_send):
         """Test email is not already in use when registering."""
         self.client.post(
             '/users/register',
@@ -198,6 +225,50 @@ class UsersTestCase(BaseTestCase):
             follow_redirects=True
         )
         self.assertIn('There is already an account with this email address',
+                      str(response.data))
+
+    # confirm email
+    @patch.object(Emailer, 'send')
+    def test_email_confirmation(self, mock_send):
+        """Test email confirmation."""
+        self.client.post(
+            '/users/register',
+            data={
+                'email': self.new_email,
+                'password': self.new_password,
+                'confirm_password': self.new_password
+            }
+        )
+        users = User.query.filter_by(email=self.new_email).first()
+        self.assertTrue(users.token)
+        response = self.client.get(
+            '/users/confirm_account/' + users.token,
+            follow_redirects=True
+        )
+        users = User.query.filter_by(email=self.new_email).first()
+        self.assertIn('Thanks for confirming your email address.',
+                      str(response.data))
+        self.assertEqual(None, users.token)
+
+    @patch.object(Emailer, 'send')
+    def test_connot_login_without_confirmation(self, mock_send):
+        """Test account must be confirmed to login."""
+        self.client.post(
+            '/users/register',
+            data={
+                'email': self.new_email,
+                'password': self.new_password,
+                'confirm_password': self.new_password
+            }
+        )
+        response = self.client.post(
+            '/users/login',
+            data={
+                'email': self.new_email,
+                'password': self.new_password
+            }
+        )
+        self.assertIn("Please check your email to for a confirmation link",
                       str(response.data))
 
     # logout
@@ -223,6 +294,7 @@ class UsersTestCase(BaseTestCase):
         self.assertIn(b'<title>Forgot Password', response.data)
 
     def test_forgot_password_has_valid_email(self):
+        """Test email is valid when using forgot password."""
         response = self.client.post(
             '/users/forgot_password',
             data={
@@ -233,6 +305,7 @@ class UsersTestCase(BaseTestCase):
         self.assertIn(b'Please provide a valid email address.', response.data)
 
     def test_forgot_password_email_in_database(self):
+        """Test database is updated when forgot password is used."""
         response = self.client.post(
             '/users/forgot_password',
             data={
@@ -247,6 +320,7 @@ class UsersTestCase(BaseTestCase):
 
     @patch.object(Emailer, 'send')
     def test_entry_made_in_forgot_password_database(self, mock_send):
+        """Test database to make sure forgot password token created."""
         self.client.post(
             '/users/forgot_password',
             data={
@@ -260,6 +334,7 @@ class UsersTestCase(BaseTestCase):
 
     @patch.object(Emailer, 'send')
     def test_flash_message_for_forgot_password(self, mock_send):
+        """Test emai reset page."""
         response = self.client.post(
             '/users/forgot_password',
             data={

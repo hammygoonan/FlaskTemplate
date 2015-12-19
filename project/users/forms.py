@@ -117,6 +117,12 @@ class LoginForm(Form):
             self.email.errors.append('Your login details are incorrect.')
             return False
 
+        # account validation
+        if user.token is not None:
+            self.email.errors.append('Please confirm your account before '
+                                     'loggin in.')
+            return False
+
         # password validation
         if not bcrypt.check_password_hash(
             user.password, self.password.data
@@ -145,10 +151,12 @@ class EditEmailForm(Form):
     )
 
     def __init__(self, *args, **kwargs):
+        """Initialise."""
         Form.__init__(self, *args, **kwargs)
         self.user = None
 
     def validate(self):
+        """Non standard validation methods."""
         # Standard Validation
         rv = Form.validate(self)
         if not rv:
@@ -197,7 +205,11 @@ class EditPasswordForm(Form):
 
 
 class ForgotPasswordForm(EditEmailForm):
+
+    """Forgot Password form."""
+
     def validate(self):
+        """Non standard validation methods."""
         # Standard Validation
         rv = Form.validate(self)
         if not rv:

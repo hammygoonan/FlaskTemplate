@@ -50,14 +50,46 @@ def register():
     form = RegistationForm()
 
     if form.validate_on_submit():
-        db.session.add(
-            User(request.form['email'], request.form['password'])
-        )
+        token = random_str(30)
+        email = request.form['email']
+        password = request.form['password']
+
+        db.session.add(User(email, password, token))
         db.session.commit()
-        flash('Thanks for signing up. You can now login below.')
+
+        reset_url = url_for('users.confirm_account', token=token)
+        # send email
+        message = """
+        <html>
+            <head></head>
+            <body>
+                <p>Hello,</p>
+                <p>Thank you for registering with our website.</p>
+                <p>Please go to <a href="{}">{}</a> to confirm your account.
+                </p>
+            </body>
+        </html>
+        """.format(reset_url, reset_url)
+        email = Emailer(email, app.config.get('ADMIN_EMAIL'),
+                        'Confirm email', message)
+        email.send()
+
+        flash('Thanks for signing up. Please check your email to for a'
+              ' confirmation link so we know you\'re human.')
         return redirect(url_for('users.login'))
 
     return render_template('register.html', form=form)
+
+
+@users_blueprint.route('/confirm_account/<token>')
+def confirm_account(token):
+    """Confirm password page."""
+    user = User.query.filter_by(token=token).first_or_404()
+    user.token = None
+    db.session.commit()
+    flash('Thanks for confirming your email address. You\'re good to go. '
+          'Please login below.')
+    return redirect(url_for('users.login'))
 
 
 @users_blueprint.route('/forgot_password', methods=['GET', 'POST'])
@@ -128,6 +160,7 @@ def reset_password(path):
 @users_blueprint.route('/edit', methods=['GET'])
 @login_required
 def edit():
+    """Edit route."""
     email_form = EditEmailForm()
     password_form = EditPasswordForm()
     return render_template(
