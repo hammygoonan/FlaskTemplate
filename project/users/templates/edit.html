@@ -39,6 +39,16 @@
                 </div>
             </div>
             <div class="row">
+                <div class="medium-8 large-6 columns">
+                    {{ password_form.confirm_password.label }}
+                    {% if password_form.errors['confirm_password'] %}
+                        {{ password_form.confirm_password(class_='alert', required='required') }}
+                    {% else %}
+                        {{ password_form.confirm_password(required='required') }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row">
                 <div class="medium-6 columns">
                     <input type="submit" class="button" value="Submit">
                 </div>

@@ -77,7 +77,8 @@ class UsersTestCase(BaseTestCase):
                 '/users/register',
                 data={
                     'email': '',
-                    'password': self.other_password
+                    'password': self.other_password,
+                    'confirm_password': self.other_password
                 },
                 follow_redirects=True
             )
@@ -91,12 +92,45 @@ class UsersTestCase(BaseTestCase):
                 '/users/register',
                 data={
                     'email': self.new_email,
-                    'password': ''
+                    'password': '',
+                    'confirm_password': ''
                 },
                 follow_redirects=True
             )
             self.assertIn(b'Please provide a password.',
                           response.data)
+
+    def test_register_password_confirmation(self):
+        """Test password confirm."""
+        with self.client:
+            response = self.client.post(
+                '/users/register',
+                data={
+                    'email': self.new_email,
+                    'password': self.other_password,
+                    'confirm_password': 'different'
+                },
+                follow_redirects=True
+            )
+            self.assertIn(b'Your passwords do not match.',
+                          response.data)
+
+    def test_register_confirm_password_required(self):
+        """Test confirm password required on password reset."""
+        response = self.client.post(
+            '/users/register',
+            data={
+                'email': self.email,
+                'password': self.new_password,
+                'confirm_password': '',
+                'code': 'resetcode'
+            },
+            follow_redirects=True
+        )
+        self.assertIn(
+            b"Please confirm your password.",
+            response.data
+        )
 
     def test_register_email_validation(self):
         """Test registration has valid email address."""
@@ -105,7 +139,8 @@ class UsersTestCase(BaseTestCase):
                 '/users/register',
                 data={
                     'email': 'not an email address',
-                    'password': 'password'
+                    'password': 'password',
+                    'confirm_password': 'password'
                 },
                 follow_redirects=True
             )
@@ -119,7 +154,8 @@ class UsersTestCase(BaseTestCase):
                 '/users/register',
                 data={
                     'email': self.new_email,
-                    'password': '1234'
+                    'password': '1234',
+                    'confirm_password': '1234'
                 },
                 follow_redirects=True
             )
@@ -133,7 +169,8 @@ class UsersTestCase(BaseTestCase):
             '/users/register',
             data={
                 'email': self.new_email,
-                'password': self.new_password
+                'password': self.new_password,
+                'confirm_password': self.new_password
             },
             follow_redirects=True
         )
@@ -146,7 +183,8 @@ class UsersTestCase(BaseTestCase):
             '/users/register',
             data={
                 'email': self.new_email,
-                'password': self.new_password
+                'password': self.new_password,
+                'confirm_password': self.new_password
             },
             follow_redirects=True
         )
@@ -154,7 +192,8 @@ class UsersTestCase(BaseTestCase):
             '/users/register',
             data={
                 'email': self.new_email,
-                'password': self.new_password
+                'password': self.new_password,
+                'confirm_password': self.new_password
             },
             follow_redirects=True
         )
@@ -236,32 +275,38 @@ class UsersTestCase(BaseTestCase):
     # reset password
 
     def test_reset_password_page_exists(self):
+        """Confirm password reset page exists."""
         response = self.client.get('/users/reset_password/resetcode')
         self.assert200(response)
         self.assertIn(b'Reset Password', response.data)
         self.assertIn(b'<title>Reset Password', response.data)
 
     def test_password_is_required(self):
+        """Test password field is required."""
         response = self.client.post(
             '/users/reset_password/resetcode',
             data={
                 'email': self.email,
-                'password': ''
+                'password': '',
+                'confirm_password': ''
             },
             follow_redirects=True
         )
         self.assertIn(b'Please provide a password.', response.data)
 
     def test_reset_password_page_requires_token(self):
+        """Test reset password token is required."""
         response = self.client.get('/users/reset_password/')
         self.assert404(response)
 
     def test_reset_password_page_email_must_exist(self):
+        """Test email on system for reset password."""
         response = self.client.post(
             '/users/reset_password/resetcode',
             data={
                 'email': self.new_email,
                 'password': self.password,
+                'confirm_password': self.password,
                 'code': 'resetcode'
             },
             follow_redirects=True
@@ -272,11 +317,13 @@ class UsersTestCase(BaseTestCase):
         )
 
     def test_reset_password_is_long_enough(self):
+        """Test password at least 8 chars."""
         response = self.client.post(
             '/users/reset_password/resetcode',
             data={
                 'email': self.email,
-                'password': 'short'
+                'password': 'short',
+                'confirm_password': 'short'
             },
             follow_redirects=True
         )
@@ -286,6 +333,7 @@ class UsersTestCase(BaseTestCase):
         )
 
     def test_reset_token_has_not_expired(self):
+        """Test reset token has expired."""
         response = self.client.get(
             '/users/reset_password/resetcode2',
             follow_redirects=True
@@ -297,6 +345,7 @@ class UsersTestCase(BaseTestCase):
         )
 
     def test_reset_has_been_requested(self):
+        """Test reset password token has been requested."""
         response = self.client.get(
             '/users/reset_password/incorrectcode',
             follow_redirects=True
@@ -304,11 +353,13 @@ class UsersTestCase(BaseTestCase):
         self.assert404(response)
 
     def test_password_updated(self):
+        """Test password is updated on reset."""
         response = self.client.post(
             '/users/reset_password/resetcode',
             data={
                 'email': self.email,
                 'password': self.new_password,
+                'confirm_password': self.new_password,
                 'code': 'resetcode'
             },
             follow_redirects=True
@@ -327,11 +378,13 @@ class UsersTestCase(BaseTestCase):
         ))
 
     def test_token_deleted_once_used(self):
+        """Test password reset deletes reset."""
         self.client.post(
             '/users/reset_password/resetcode',
             data={
                 'email': self.email,
                 'password': self.new_password,
+                'confirm_password': self.new_password,
                 'code': 'resetcode'
             }
         )
@@ -339,11 +392,13 @@ class UsersTestCase(BaseTestCase):
         self.assertEqual(None, token)
 
     def test_reset_fails_if_no_token(self):
+        """Test reset password token is required."""
         response = self.client.post(
             '/users/reset_password/resetcode',
             data={
                 'email': self.email,
                 'password': self.new_password,
+                'confirm_password': self.new_password,
                 'code': ''
             },
             follow_redirects=True
@@ -351,6 +406,40 @@ class UsersTestCase(BaseTestCase):
         self.assertIn(
             b"Something is wrong. Please try again and contact the" +
             b" administrator if your issue persists.",
+            response.data
+        )
+
+    def test_reset_confirm_password_matches(self):
+        """Test confirm password matches on password reset."""
+        response = self.client.post(
+            '/users/reset_password/resetcode',
+            data={
+                'email': self.email,
+                'password': self.new_password,
+                'confirm_password': 'different',
+                'code': 'resetcode'
+            },
+            follow_redirects=True
+        )
+        self.assertIn(
+            b"Your passwords do not match.",
+            response.data
+        )
+
+    def test_reset_confirm_password_required(self):
+        """Test confirm password required on password reset."""
+        response = self.client.post(
+            '/users/reset_password/resetcode',
+            data={
+                'email': self.email,
+                'password': self.new_password,
+                'confirm_password': '',
+                'code': 'resetcode'
+            },
+            follow_redirects=True
+        )
+        self.assertIn(
+            b"Please confirm your password.",
             response.data
         )
 
@@ -442,6 +531,7 @@ class UsersTestCase(BaseTestCase):
                 '/users/edit/password',
                 data={
                     'password': self.new_password,
+                    'confirm_password': self.new_password,
                 },
                 follow_redirects=True
             )
@@ -461,11 +551,44 @@ class UsersTestCase(BaseTestCase):
                 '/users/edit/password',
                 data={
                     'password': '1234',
+                    'confirm_password': '1234',
                 },
                 follow_redirects=True
             )
             self.assertIn(
                 b'Password must be at least eight characters long.',
+                response.data
+            )
+
+    def test_password_confirm_for_edit(self):
+        with self.client:
+            self.login()
+            response = self.client.post(
+                '/users/edit/password',
+                data={
+                    'password': self.new_password,
+                    'confirm_password': '',
+                },
+                follow_redirects=True
+            )
+            self.assertIn(
+                b'Please confirm your password.',
+                response.data
+            )
+
+    def test_password_confirm_for_edit(self):
+        with self.client:
+            self.login()
+            response = self.client.post(
+                '/users/edit/password',
+                data={
+                    'password': self.new_password,
+                    'confirm_password': 'different',
+                },
+                follow_redirects=True
+            )
+            self.assertIn(
+                b'Your passwords do not match.',
                 response.data
             )
 

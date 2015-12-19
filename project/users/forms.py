@@ -8,7 +8,7 @@ from flask_wtf import Form
 from wtforms import PasswordField
 from flask_wtf.html5 import EmailField
 from wtforms.fields import HiddenField
-from wtforms.validators import DataRequired, Length, Email
+from wtforms.validators import DataRequired, Length, Email, EqualTo
 from flask import url_for
 
 from project.models import User, ResetPassword
@@ -39,6 +39,18 @@ class RegistationForm(Form):
             Length(
                 min=8,
                 message="Password must be at least eight characters long."
+            )
+        ]
+    )
+    confirm_password = PasswordField(
+        'Confirm Password',
+        validators=[
+            DataRequired(
+                message="Please confirm your password."
+            ),
+            EqualTo(
+                fieldname="password",
+                message="Your passwords do not match."
             )
         ]
     )
@@ -167,6 +179,18 @@ class EditPasswordForm(Form):
             Length(
                 min=8,
                 message="Password must be at least eight characters long."
+            )
+        ]
+    )
+    confirm_password = PasswordField(
+        'Confirm Password',
+        validators=[
+            DataRequired(
+                message="Please confirm your password."
+            ),
+            EqualTo(
+                fieldname="password",
+                message="Your passwords do not match."
             )
         ]
     )
