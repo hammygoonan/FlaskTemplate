@@ -10,6 +10,7 @@ from flask_wtf.html5 import EmailField
 from wtforms.fields import HiddenField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 from flask import url_for
+from flask.ext.login import current_user
 
 from project.models import User, ResetPassword
 from project import bcrypt
@@ -164,7 +165,7 @@ class EditEmailForm(Form):
 
         # user validation
         user = User.query.filter_by(email=self.email.data).first()
-        if user:
+        if user and user != current_user:
             self.email.errors.append(
                 'There is already an account with this email address.'
             )

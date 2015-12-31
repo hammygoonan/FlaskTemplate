@@ -25,13 +25,13 @@ class User(db.Model):
 
     def is_authenticated(self):
         """User validated if account has been confirmed."""
-        if self.token is None:
-            return True
-        return False
+        return True
 
     def is_active(self):
         """All users are automatically active."""
-        return True
+        if self.token is None:
+            return True
+        return False
 
     def is_anonymous(self):
         """No anonymous users."""
