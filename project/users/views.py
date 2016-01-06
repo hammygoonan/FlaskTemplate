@@ -30,8 +30,14 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         login_user(form.user)
-        return redirect('/')
+        next_page = None
+        if 'next_page' in session:
+            next_page = session['next_page']
+            session.pop('next_page', None)
+        return redirect(next_page or url_for('home'))
 
+    if request.args.get('next'):
+        session['next_page'] = request.args.get('next')
     return render_template('login.html', form=form)
 
 

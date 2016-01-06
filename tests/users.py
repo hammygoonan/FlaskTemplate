@@ -667,14 +667,31 @@ class UsersTestCase(BaseTestCase):
                 response.data
             )
 
+    # Test login redirect
+    def test_redirect_on_login(self):
+        with self.client:
+            response = self.client.get(
+                url_for('users.edit')
+            )
+            self.assertIn('next=%2Fusers%2Fedit', response.location)
+            self.client.get('/users/login?next=/users/edit')
+            response = self.client.post(
+                'users/login',
+                data={
+                    'email': self.email,
+                    'password': self.password
+                },
+            )
+            self.assertRedirects(response, url_for('users.edit'))
+
     # helper methods
     def login(self):
         """Login to site."""
         return self.client.post(
             url_for('users.login'),
-            follow_redirects=True,
             data={
                 'email': self.email,
                 'password': self.password
             },
+            follow_redirects=True,
         )
