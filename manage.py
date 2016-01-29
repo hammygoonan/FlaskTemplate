@@ -24,13 +24,14 @@ def test():
 @manager.command
 def cov():
     """Runs the unit tests with coverage."""
+    app.config.from_object('config.Test')
     cov = coverage.coverage(
         branch=True,
         include='project/*'
     )
     cov.start()
     tests = unittest.TestLoader().discover('', pattern='*.py')
-    unittest.TextTestRunner(verbosity=2).run(tests)
+    unittest.TextTestRunner(verbosity=1).run(tests)
     cov.stop()
     cov.save()
     print('Coverage Summary:')
