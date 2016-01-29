@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template
-from flask.ext.login import current_user
 
 from project.users.forms import RegistationForm
 
