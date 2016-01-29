@@ -1,25 +1,32 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Module init file. Runs application."""
+
+"""Main app entry point."""
 
 import random
 import string
+import re
+import os
 
-from flask import Flask, render_template
+from flask import Flask, send_from_directory, request
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.bcrypt import Bcrypt
 from flask.ext.login import LoginManager
-
+from .flask_mailgun.flask_mailgun import Mailgun
+from .errors import ErrorHandler
 
 app = Flask(__name__)
+app.config.from_object(os.environ['PROJECT_SETTINGS'])
+db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-app.config.from_object('config.DevelopmentConfig')
-db = SQLAlchemy(app)
+mailgun = Mailgun(app)
+
+if not app.debug:
+    ErrorHandler(app)
 
 
-# helpers
 def random_str(N=10):
     """Return random string of length N."""
     return ''.join(random.SystemRandom().choice(
@@ -27,16 +34,26 @@ def random_str(N=10):
     ) for _ in range(N))
 
 
-# Blueprints
-from project.users.views import users_blueprint
+def is_email(email):
+    """Validate that an email is syntactially correct."""
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        return False
+    return True
+
+
+from .users.views import users_blueprint
+from .oauth.views import oauth_blueprint
+from .pages.views import pages_blueprint
 
 app.register_blueprint(users_blueprint, url_prefix='/users')
+app.register_blueprint(oauth_blueprint, url_prefix='/oauth')
+app.register_blueprint(pages_blueprint)
 
-# Login bits
-from project.models import User
+from .users.models import User
 
 login_manager.login_view = "users.login"
 login_manager.login_message = "Please login to view that page."
+login_manager.login_message_category = "error"
 
 
 @login_manager.user_loader
@@ -45,13 +62,10 @@ def load_user(user_id):
     return User.query.filter(User.id == int(user_id)).first()
 
 
-# Error handling
-@app.errorhandler(404)
-def page_not_found(e):
-    """Render 404 page template."""
-    return render_template('404.html'), 404
+@app.route('/robots.txt')
+def static_from_root():
+    return send_from_directory(app.static_folder, request.path[1:])
 
 
-@app.route("/")
-def home():
-    return render_template('home.html')
+if __name__ == "__main__":
+    app.run()

@@ -8,11 +8,12 @@ from flask_wtf import Form
 from wtforms import PasswordField
 from flask_wtf.html5 import EmailField
 from wtforms.fields import HiddenField
+from wtforms.fields import StringField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 from flask import url_for
 from flask.ext.login import current_user
 
-from project.models import User, ResetPassword
+from project.users.models import User, ResetPassword
 from project import bcrypt
 
 
@@ -20,6 +21,14 @@ class RegistationForm(Form):
 
     """User regisation form."""
 
+    name = StringField(
+        'Name',
+        validators=[
+            DataRequired(
+                message="Please provide a name."
+            )
+        ]
+    )
     email = EmailField(
         'Email',
         validators=[
@@ -122,6 +131,11 @@ class LoginForm(Form):
         if user.token is not None:
             self.email.errors.append('Please confirm your account before '
                                      'loggin in.')
+            resend_url = url_for('.resend_confirmation') + '?email=' +\
+                self.email.data
+            self.email.errors.append(
+                'If you do not revieve your confirmation email you can resend '
+                'it by clicking <a href="' + resend_url + '">here</a>')
             return False
 
         # password validation
@@ -135,7 +149,7 @@ class LoginForm(Form):
         return True
 
 
-class EditEmailForm(Form):
+class EditDetailsForm(Form):
 
     """User edit form."""
 
@@ -147,6 +161,14 @@ class EditEmailForm(Form):
             ),
             Email(
                 message="Please provide a valid email address."
+            )
+        ]
+    )
+    name = StringField(
+        'Name',
+        validators=[
+            DataRequired(
+                message="Please provide a name."
             )
         ]
     )
@@ -205,9 +227,21 @@ class EditPasswordForm(Form):
     )
 
 
-class ForgotPasswordForm(EditEmailForm):
+class ForgotPasswordForm(Form):
 
     """Forgot Password form."""
+
+    email = EmailField(
+        'Email',
+        validators=[
+            DataRequired(
+                message="Please provide an email address."
+            ),
+            Email(
+                message="Please provide a valid email address."
+            )
+        ]
+    )
 
     def validate(self):
         """Non standard validation methods."""
@@ -228,11 +262,46 @@ class ForgotPasswordForm(EditEmailForm):
         return True
 
 
-class ResetPasswordForm(RegistationForm):
+class ResetPasswordForm(Form):
     code = HiddenField('Code', validators=[DataRequired(
         message="Something is wrong. Please try again and contact the" +
                 " administrator if your issue persists."
     )])
+    email = EmailField(
+        'Email',
+        validators=[
+            DataRequired(
+                message="Please provide an email address."
+            ),
+            Email(
+                message="Please provide a valid email address."
+            )
+        ]
+    )
+    password = PasswordField(
+        'Password',
+        validators=[
+            DataRequired(
+                message="Please provide a password."
+            ),
+            Length(
+                min=8,
+                message="Password must be at least eight characters long."
+            )
+        ]
+    )
+    confirm_password = PasswordField(
+        'Confirm Password',
+        validators=[
+            DataRequired(
+                message="Please confirm your password."
+            ),
+            EqualTo(
+                fieldname="password",
+                message="Your passwords do not match."
+            )
+        ]
+    )
 
     def validate(self):
         # Standard Validation

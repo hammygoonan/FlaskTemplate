@@ -22,7 +22,7 @@
     this.isClick = false;
     this._init();
 
-    Foundation.registerPlugin(this);
+    Foundation.registerPlugin(this, 'Tooltip');
   }
 
   Tooltip.defaults = {
@@ -78,7 +78,7 @@
     /**
      * Custom template to be used to generate markup for tooltip.
      * @option
-     * @example '<div class="tooltip"></div>'
+     * @example '&lt;div class="tooltip"&gt;&lt;/div&gt;'
      */
     template: '',
     /**
@@ -152,7 +152,7 @@
   Tooltip.prototype._getPositionClass = function(element){
     if(!element){ return ''; }
     // var position = element.attr('class').match(/top|left|right/g);
-    var position = element[0].className.match(/(top|left|right)/g);
+    var position = element[0].className.match(/\b(top|left|right)\b/g);
         position = position ? position[0] : '';
     return position;
   };
@@ -161,7 +161,7 @@
    * @private
    */
   Tooltip.prototype._buildTemplate = function(id){
-    var templateClasses = (this.options.tooltipClass + ' ' + this.options.positionClass).trim();
+    var templateClasses = (this.options.tooltipClass + ' ' + this.options.positionClass + ' ' + this.options.templateClasses).trim();
     var $template =  $('<div></div>').addClass(templateClasses).attr({
       'role': 'tooltip',
       'aria-hidden': true,
@@ -246,7 +246,7 @@
 
   /**
    * reveals the tooltip, and fires an event to close any other open tooltips on the page
-   * @fires Closeme#tooltip
+   * @fires Tooltip#closeme
    * @fires Tooltip#show
    * @function
    */
@@ -372,7 +372,7 @@
     this.$element
       .on('focus.zf.tooltip', function(e){
         isFocus = true;
-        console.log(_this.isClick);
+        // console.log(_this.isClick);
         if(_this.isClick){
           return false;
         }else{

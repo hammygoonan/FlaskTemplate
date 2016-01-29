@@ -4,11 +4,25 @@
         <meta charset="utf-8" />
         <meta http-equiv="x-ua-compatible" content="ie=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% block title %}{% endblock %}</title>
+        <meta name="keywords" content="">
+        <meta name="description" content="">
+        <title>My Project | {% block title %}{% endblock %}</title>
         <link href="{{ url_for('static', filename='app.css') }}" rel="stylesheet" />
     </head>
-    <body>
-        {% block content %}{% endblock %}
+    <body class="{% block body_class %}{% endblock %}">
+        {% include 'google-analytics.html' %}
+        <div class="off-canvas-wrapper">
+            <div class="off-canvas-wrapper-inner" data-off-canvas-wrapper>
+                {% include 'off-canvas.html' %}
+                {% include 'title-bar.html' %}
+                <div class="row">
+                    <div class="large-12 columns">
+                        {% block content %}{% endblock %}
+                    </div>
+                </div>
+                {% include 'footer.html' %}
+            </div>
+        </div>
         <script src="{{ url_for('static', filename='bower_components/jquery/dist/jquery.min.js') }}"></script>
         <script src="{{ url_for('static', filename='bower_components/foundation-sites/dist/foundation.min.js') }}"></script>
         <script src="{{ url_for('static', filename='js/app.js') }}"></script>

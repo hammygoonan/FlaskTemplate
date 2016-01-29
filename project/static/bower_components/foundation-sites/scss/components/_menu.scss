@@ -39,7 +39,7 @@ $menu-expand-max: 6 !default;
   }
 
   // Reset line height to make the height of the overall item easier to calculate
-  > li:not(.menu-text) > a {
+  > li > a {
     display: block;
     padding: $menu-item-padding;
     line-height: 1;
@@ -54,19 +54,10 @@ $menu-expand-max: 6 !default;
 }
 
 /// Expands the items of a Menu, so each item is the same width.
-/// @param {Keyword|Number} $count [auto] - Number of items in the Menu. You can hardcode a number, or use `auto` to generate CSS that will adapt to the number of items inside the menu.
-@mixin menu-expand($count: auto) {
+@mixin menu-expand {
   display: table;
+  table-layout: fixed;
   width: 100%;
-
-  > li {
-    @if $count == auto {
-      @include auto-width($menu-expand-max);
-    }
-    @else if type-of($count) == 'number' {
-      width: percentage(1 / $count);
-    }
-  }
 }
 
 /// Sets the direction of a Menu.
@@ -89,9 +80,14 @@ $menu-expand-max: 6 !default;
 
 /// Creates a simple Menu, which has no padding or hover state.
 @mixin menu-simple {
+  li {
+    line-height: 1;
+    display: inline-block;
+    margin-#{$global-right}: get-side($menu-item-padding, $global-right);
+  }
+
   a {
     padding: 0;
-    margin-#{$global-right}: get-side($menu-item-padding, $global-right);
   }
 }
 
@@ -209,5 +205,10 @@ $menu-expand-max: 6 !default;
 
   .menu-text {
     @include menu-text;
+  }
+
+  // Prevent FOUC when using the Responsive Menu plugin
+  .no-js [data-responsive-menu] ul {
+    display: none;
   }
 }

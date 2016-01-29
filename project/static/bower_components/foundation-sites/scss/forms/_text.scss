@@ -87,7 +87,7 @@ $input-radius: $global-radius !default;
   // Focus state
   &:focus {
     border: $input-border-focus;
-    background: $input-background-focus;
+    background-color: $input-background-focus;
     outline: none;
     box-shadow: $input-shadow-focus;
 
@@ -128,12 +128,13 @@ $input-radius: $global-radius !default;
   // Reset styles on button-like inputs
   [type='submit'],
   [type='button'] {
-    border-radius: $global-radius;
+    border-radius: $button-radius;
     -webkit-appearance: none;
     -moz-appearance: none;
   }
 
   // Reset Normalize setting content-box to search elements
+  // scss-lint:disable QualifyingElement
   input[type='search'] {
     box-sizing: border-box;
   }

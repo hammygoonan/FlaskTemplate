@@ -8,7 +8,7 @@ import coverage
 import os
 
 from flask.ext.script import Manager
-from project import app
+from project import app, db
 
 manager = Manager(app)
 
@@ -16,8 +16,9 @@ manager = Manager(app)
 @manager.command
 def test():
     """Run unit tests."""
-    tests = unittest.TestLoader().discover('', pattern='*.py')
-    unittest.TextTestRunner(verbosity=2).run(tests)
+    app.config.from_object('config.Test')
+    tests = unittest.TestLoader().discover('tests', pattern='*.py')
+    unittest.TextTestRunner(verbosity=1).run(tests)
 
 
 @manager.command
@@ -38,6 +39,11 @@ def cov():
     covdir = os.path.join(basedir, 'coverage')
     cov.html_report(directory=covdir)
     cov.erase()
+
+
+@manager.command
+def create_db():
+    db.create_all()
 
 
 if __name__ == '__main__':

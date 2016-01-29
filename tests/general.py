@@ -10,11 +10,16 @@ class GeneralTestCase(BaseTestCase):
 
     """Application wide tests."""
 
+    def setUp(self):
+        pass
+
     def test_404_page(self):
+        """General 404 test."""
         response = self.client.get('/notapage')
         self.assert404(response)
 
     def test_random_string(self):
+        """Test random string helper."""
         string1 = random_str()
         string2 = random_str(30)
         self.assertEqual(10, len(string1))

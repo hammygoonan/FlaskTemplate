@@ -3,25 +3,31 @@
 """config.py.default: default config file."""
 
 
-class BaseConfig(object):
+class BaseConfig():
 
     """Base Flask config variabels."""
 
     DEBUG = False
     SECRET_KEY = 'REPLACE WITH VERY SECRET KEY'
-    DOMAIN_NAME = 'http://example.com/'
-    SMTP_HOST = 'localhost'
-    SMTP_PORT = None
-    SMTP_USER = None
-    SMTP_PASSWORD = None
-    SMTP_SSL = False
-    SMTP_REQUIRE_PASSWORD = False
-    ADMIN_EMAIL = 'hello@example.com'
-    CONTACT_EMAIL = 'hello@example.com'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SERVER_NAME = 'localhost'
+    ERROR_MAILHOST = ()
+    ERROR_EMAIL_TO = ''
+    ERROR_EMAIL_FROM = []
+    ERROR_EMAIL_CREDENTIALS = ()
+
+    MAIL_FROM_DEFAULT = ''
+    MAIL_FROM_DEFAULT = ''
+    MAILGUN_DOMAIN = ''
+    MAILGUN_API_KEY = ''
+
+    TWITTER_CUSTOMER_KEY = ''
+    TWITTER_CUSTOMER_SECRET = ''
+    GOOGLE_CLIENT_ID = ''
+    GOOGLE_CLIENT_SECRET = ''
 
 
-class TestConfig(BaseConfig):
+class Test(BaseConfig):
 
     """Test Flask config variabels."""
 
@@ -32,15 +38,17 @@ class TestConfig(BaseConfig):
     WTF_CSRF_ENABLED = False
 
 
-class DevelopmentConfig(BaseConfig):
+class Development(BaseConfig):
 
     """Development Flask config variabels."""
 
     DEBUG = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///development.db'
 
 
-class ProductionConfig(BaseConfig):
+class Production(BaseConfig):
 
     """Production Flask config variabels."""
 
     DEBUG = False
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///production.db'

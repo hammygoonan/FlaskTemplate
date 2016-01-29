@@ -1,41 +1,46 @@
 {% extends "base.html" %}
 {% block title %}Login{% endblock %}
+{% block body_class %}login{% endblock %}
 {% block content %}
-<div class="row login">
-    <div class="large-12 columns">
-        <h1>Login</h1>
-        {% include 'success_messages.html' %}
-        {% include 'form_errors.html' %}
-        <form id="login-form" method="POST" action="{{ url_for('users.login') }}">
-            {{ form.hidden_tag() }}
-            <div class="row">
-                <div class="medium-8 large-6 columns">
-                    {{ form.email.label }}
-                    {% if form.errors['email'] %}
-                        {{ form.email(class_='alert', required='required') }}
-                    {% else %}
-                        {{ form.email(required='required') }}
-                    {% endif %}
-                </div>
-            </div>
-            <div class="row">
-                <div class="medium-8 large-6 columns">
-                    {{ form.password.label }}
-                    {% if form.errors['password'] %}
-                        {{ form.password(class_='alert', required='required') }}
-                    {% else %}
-                        {{ form.password(required='required') }}
-                    {% endif %}
-                </div>
-            </div>
-            <div class="row">
-                <div class="medium-6 columns">
-                    <input type="submit" class="button" value="Submit">
-                </div>
-            </div>
-        </form>
-        <p><a href="{{ url_for('users.forgot_password') }}">Forgot password?</a></p>
-        <p><a href="{{ url_for('users.register') }}">Register new account.</a></p>
+
+<h1>Login</h1>
+{% include 'success_messages.html' %}
+{% include 'form_errors.html' %}
+<form id="login-form" method="POST" action="{{ url_for('users.login') }}">
+    {{ form.hidden_tag() }}
+    <div class="row">
+        <div class="medium-8 large-6 columns">
+            {{ form.email.label }}
+            {% if form.errors['email'] %}
+                {{ form.email(class_='alert', required='required') }}
+            {% else %}
+                {{ form.email(required='required') }}
+            {% endif %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="medium-8 large-6 columns">
+            {{ form.password.label }}
+            {% if form.errors['password'] %}
+                {{ form.password(class_='alert', required='required') }}
+            {% else %}
+                {{ form.password(required='required') }}
+            {% endif %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="medium-6 columns">
+            <input type="submit" class="button expanded" value="Submit">
+        </div>
+    </div>
+</form>
+<div class="row">
+    <div class="medium-6 columns">
+        <a href="{{ url_for('oauth.login', provider='google') }}" class="google-login button expanded">
+            Sign in with Google
+        </a>
     </div>
 </div>
+<p><a href="{{ url_for('users.forgot_password') }}">Forgot password?</a></p>
+<p><a href="{{ url_for('users.register') }}">Register new account.</a></p>
 {% endblock %}

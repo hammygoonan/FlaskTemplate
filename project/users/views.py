@@ -3,18 +3,19 @@
 """users/views.py: User views."""
 
 from datetime import datetime, timedelta
+
 from flask import render_template, Blueprint, request, flash, redirect,\
-    url_for, session
+    url_for, session, abort
 from flask.ext.login import login_user, login_required, logout_user,\
     current_user
 
 from project import app, db, bcrypt, random_str
-from project.models import User, ResetPassword
-from project.emailer.emailer import Emailer
+from project.users.models import User, ResetPassword
+from project.mail.mail import send_forgot_password, send_registration
 from .forms import RegistationForm
 from .forms import LoginForm
 from .forms import EditPasswordForm
-from .forms import EditEmailForm
+from .forms import EditDetailsForm
 from .forms import ForgotPasswordForm
 from .forms import ResetPasswordForm
 
@@ -34,11 +35,20 @@ def login():
         if 'next_page' in session:
             next_page = session['next_page']
             session.pop('next_page', None)
-        return redirect(next_page or url_for('home'))
+        return redirect(next_page or url_for('pages.home'))
 
     if request.args.get('next'):
         session['next_page'] = request.args.get('next')
     return render_template('login.html', form=form)
+
+
+@users_blueprint.route('/modal_login')
+def modal_login():
+    """Login route."""
+    form = LoginForm()
+    if request.args.get('next'):
+        session['next_page'] = request.args.get('next')
+    return render_template('modal_login.html', form=form)
 
 
 @users_blueprint.route('/logout')
@@ -46,7 +56,9 @@ def login():
 def logout():
     """Logout route."""
     logout_user()
-    flash('You were logged out')
+    if 'oauth_token' in session:
+        session.pop('oauth_token', None)
+    flash('You were logged out', 'info')
     return redirect(url_for('users.login'))
 
 
@@ -54,37 +66,58 @@ def logout():
 def register():
     """Register route."""
     form = RegistationForm()
-
     if form.validate_on_submit():
         token = random_str(30)
+        name = request.form['name']
         email = request.form['email']
         password = request.form['password']
 
-        db.session.add(User(email, password, token))
+        db.session.add(User(name, email, password, token))
         db.session.commit()
 
-        reset_url = url_for('users.confirm_account', token=token)
-        # send email
-        message = """
-        <html>
-            <head></head>
-            <body>
-                <p>Hello,</p>
-                <p>Thank you for registering with our website.</p>
-                <p>Please go to <a href="{}">{}</a> to confirm your account.
-                </p>
-            </body>
-        </html>
-        """.format(reset_url, reset_url)
-        email = Emailer(email, app.config.get('ADMIN_EMAIL'),
-                        'Confirm email', message)
-        email.send()
+        reset_url = url_for('users.confirm_account', token=token,
+                            _external=True)
+        send_registration(
+            {
+                'to': email,
+                'subject': 'Project confirmation email'
+            },
+            values=[
+                name, reset_url, reset_url
+            ]
+        )
 
         flash('Thanks for signing up. Please check your email to for a'
-              ' confirmation link so we know you\'re human.')
+              ' confirmation link so we know you\'re human.', 'info')
+        resend_url = url_for('.resend_confirmation') + '?email=' + email
+        flash('If you do not revieve your confirmation email you can resend '
+              'it by clicking <a href="' + resend_url + '">here</a>', 'info')
         return redirect(url_for('users.login'))
 
     return render_template('register.html', form=form)
+
+
+@users_blueprint.route('/resend_confirmation')
+def resend_confirmation():
+    email = request.args.get('email', None)
+    if email is None:
+        abort(404)
+
+    user = User.query.filter_by(email=email).first()
+    reset_url = url_for('users.confirm_account', token=user.token,
+                        _external=True)
+    send_registration(
+        {
+            'to': email,
+            'subject': 'Project confirmation email'
+        },
+        values=[
+            user.name, reset_url, reset_url
+        ]
+    )
+    flash('Your email confirmation has been resent. Please check your inbox.',
+          'info')
+    return redirect(url_for('users.login'))
 
 
 @users_blueprint.route('/confirm_account/<token>')
@@ -94,7 +127,7 @@ def confirm_account(token):
     user.token = None
     db.session.commit()
     flash('Thanks for confirming your email address. You\'re good to go. '
-          'Please login below.')
+          'Please login below.', 'info')
     return redirect(url_for('users.login'))
 
 
@@ -113,25 +146,21 @@ def forgot_password():
         db.session.add(ResetPassword(user, code, expires))
         db.session.commit()
 
-        reset_url = url_for('users.reset_password', path=code)
+        reset_url = url_for('users.reset_password', path=code, _external=True)
+
         # send email
-        message = """
-        <html>
-            <head></head>
-            <body>
-                <p>Hello,</p>
-                <p>Someone has requested an email reset.</p>
-                <p>If that was you, please go to <a href="{}">{}</a>.</p>
-                <p>If it was not you, please just ignore this email.</p>
-                <p>Please note that replies to this email are unlikely to
-                be read in a timely fashion, if at all.</p>
-            </body>
-        </html>
-        """.format(reset_url, reset_url)
-        email = Emailer(user.email, app.config.get('ADMIN_EMAIL'),
-                        'Email reset', message)
-        email.send()
-        flash('Your password has been reset, please check your email.')
+        send_forgot_password(
+            {
+                'to': user.email,
+                'subject': 'Project reset password'
+            },
+            values=[
+                reset_url, reset_url
+            ]
+        )
+        flash('A password reset link has been emailed to you, please check '
+              'your email.', 'info')
+        return redirect(url_for('users.login'))
 
     return render_template('forgot_password.html', form=form)
 
@@ -141,8 +170,7 @@ def reset_password(path):
     """Reset password route."""
     reset = ResetPassword.query.filter_by(code=path).first_or_404()
     if datetime.utcnow() > reset.expires:
-        error = 'That reset token has expired.'
-        session['form_errors'] = {'error': [error]}
+        flash('That reset token has expired.', 'error')
         return redirect(url_for('users.forgot_password'))
 
     form = ResetPasswordForm()
@@ -153,7 +181,7 @@ def reset_password(path):
         db.session.add(reset.user)
         db.session.delete(reset)
         db.session.commit()
-        flash('Your password has been updated. Please login below.')
+        flash('Your password has been updated. Please login below.', 'info')
         return redirect(url_for('users.login'))
 
     return render_template(
@@ -167,33 +195,31 @@ def reset_password(path):
 @login_required
 def edit():
     """Edit route."""
-    email_form = EditEmailForm()
+    form = EditDetailsForm()
     password_form = EditPasswordForm()
     return render_template(
         'edit.html',
-        email_form=email_form,
+        form=form,
         password_form=password_form
     )
 
 
-@users_blueprint.route('/edit/email', methods=['POST'])
+@users_blueprint.route('/edit/details', methods=['POST'])
 @login_required
-def edit_email():
+def edit_details():
     """Edit user route."""
-    form = EditEmailForm()
-
-    if request.form['email'] == current_user.email:
-        flash('No changes have been made to your email address.')
-        return redirect(url_for('users.edit'))
+    form = EditDetailsForm()
 
     if form.validate_on_submit():
         current_user.email = request.form['email']
+        current_user.name = request.form['name']
         db.session.commit()
-        session.pop('form_errors', None)
-        flash('Your email address has been updated.')
+        flash('Your details have been updated.', 'info')
 
     else:
-        session['form_errors'] = form.errors
+        for errors, messages in form.errors.items():
+            for message in messages:
+                flash(message, 'error')
 
     return redirect(url_for('users.edit'))
 
@@ -209,8 +235,21 @@ def edit_password():
             request.form['password']
         )
         db.session.commit()
-        session.pop('form_errors', None)
-        flash('Your password has been updated.')
+        flash('Your password has been updated.', 'info')
     else:
-        session['form_errors'] = form.errors
+        for errors, messages in form.errors.items():
+            for message in messages:
+                flash(message, 'error')
     return redirect(url_for('users.edit'))
+
+
+@users_blueprint.route('/delete', methods=['POST'])
+@login_required
+def delete():
+    """Edit route."""
+    user = current_user
+    db.session.delete(user)
+    db.session.commit()
+    logout_user()
+    flash('Your account as been deleted. Yikes!', 'info')
+    return redirect(url_for('users.login'))

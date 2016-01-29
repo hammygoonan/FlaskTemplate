@@ -26,12 +26,6 @@
     }
   };
 
-  // [PH] Media queries
-  var phMedia = {
-    small: '(min-width: 0px)',
-    medium: '(min-width: 640px)'
-  };
-
   /**
    * Creates a new instance of a responsive menu.
    * @class
@@ -48,7 +42,7 @@
     this._init();
     this._events();
 
-    Foundation.registerPlugin(this);
+    Foundation.registerPlugin(this, 'ResponsiveMenu');
   }
 
   ResponsiveMenu.defaults = {};
