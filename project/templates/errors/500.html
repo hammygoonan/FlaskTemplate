@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Server Error (500){% endblock %}
+{% block body_class %}five-hundred{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="large-12 columns">
+        <h1>BAAAALLLLLLLL!!!!!!!</h1>
+        <h2>Server Error (500)</h2>
+    </div>
+    <div class="large-12 columns">
+        <p>Something has broken. Sorry about that, but don't worry it has been picked up by the Match Review Panel.</p>
+        <p>Perhaps you should try the <a href="{{ url_for('pages.home') }}">home page</a>.</p>
+    </div>
+</div>
+{% endblock %}

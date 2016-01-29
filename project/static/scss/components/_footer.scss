@@ -1,0 +1,19 @@
+footer{
+    font-size: $small-font-size;
+    border-top: rem-calc(1) solid $primary-color;
+    padding-top: $grid-column-gutter;
+    padding-bottom: $grid-column-gutter;
+    margin-top: $grid-column-gutter;
+}
+.footer-links{
+    padding: 0;
+    margin: 0;
+    text-align: right;
+    li{
+        display: inline-block;
+        padding: 0 rem-calc(15);
+        &:last-child{
+            padding-right: 0;
+        }
+    }
+}

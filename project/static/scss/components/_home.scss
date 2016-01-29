@@ -1,0 +1,36 @@
+.sign-up{
+    padding: 0 rem-calc(15);
+    margin-top: $grid-column-gutter;
+    margin-bottom: $grid-column-gutter;
+    @include breakpoint(large) {
+        margin-top: rem-calc(75);
+        margin-bottom: rem-calc(75);
+    }
+}
+.title-bar-left{
+    padding-top: rem-calc(5);
+}
+.title-bar-right{
+    .button{
+        margin-bottom: 0;
+    }
+}
+#login-modal{
+    min-height: 340px;
+    h3{
+        color: black;
+    }
+}
+.google-login{
+    background-color: $google-red;
+    line-height: 110%;
+    &:hover, &:active, &:focus{
+        background-color: scale-color($google-red, $lightness: -15%);
+    }
+    &::before{
+        content: url('images/g+.svg');
+        // display: inline-block;
+        vertical-align: top;
+        padding-right: rem-calc(5);
+    }
+}

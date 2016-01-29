@@ -1,0 +1,14 @@
+#offCanvasLeft{
+    min-height: 100%;
+}
+#off-canvas-menu{
+    padding-bottom: rem-calc(15);
+    h3{
+        padding: rem-calc(15) rem-calc(15) 0;
+        color: $black;
+    }
+    ul{
+        margin: 0;
+        padding: 0;
+    }
+}

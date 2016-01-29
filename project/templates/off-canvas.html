@@ -1,0 +1,18 @@
+<div class="off-canvas position-left" id="offCanvasLeft" data-off-canvas data-position="left">
+    <button class="close-button" aria-label="Close menu" type="button" data-close>
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <div id="off-canvas-menu">
+        <h3>Menu</h3>
+        <ul class="vertical menu" data-accordion-menu>
+            <li><a href="/">Home</a></li>
+            {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('users.edit') }}">Edit Details</a></li>
+                <li><a href="{{ url_for('users.logout') }}">Logout</a></li>
+            {% else %}
+                <li><a href="{{ url_for('users.login') }}">Login</a></li>
+                <li><a href="{{ url_for('users.register') }}">Sign Up</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</div>

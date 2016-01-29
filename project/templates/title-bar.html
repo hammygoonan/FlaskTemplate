@@ -1,0 +1,16 @@
+<div class="title-bar">
+    <div class="title-bar-left">
+        <button class="menu-icon" type="button" data-open="offCanvasLeft"></button>
+        <span class="title-bar-title"><a href="/">My Project</a></span>
+    </div>
+    {% if not current_user.is_authenticated %}
+        <div class="title-bar-right">
+            <a class="button success hollow sign-in" data-open="login-modal">Sign In</a>
+        </div>
+        <div class="reveal" id="login-modal" data-reveal>
+            <button class="close-button" data-close aria-label="Close reveal" type="button">
+                <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+    {% endif %}
+</div>

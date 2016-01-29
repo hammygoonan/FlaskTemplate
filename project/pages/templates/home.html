@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% set title = 'Home' %}
+{% block body_class %}home{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="large-5 medium-7 small-10 small-centered columns sign-up">
+            <h1 class="text-center">My Project</h1>
+            <h4 class="text-center subheader">My Project subheader</h4>
+            <h4>Sign Up</h4>
+            <form id="register-form" method="POST" action="{{ url_for('users.register') }}">
+                {{ form.hidden_tag() }}
+                <div class="row">
+                    <div class="large-12 columns">
+                        {{ form.name(required='required', placeholder='Your Name') }}
+                    </div>
+                    <div class="large-12 columns">
+                        {{ form.email(required='required', placeholder='Email') }}
+                    </div>
+                    <div class="large-12 columns">
+                        {{ form.password(required='required', placeholder='Create Password') }}
+                    </div>
+                    <div class="large-12 columns">
+                        {{ form.confirm_password(required='required', placeholder='Confirm Password') }}
+                    </div>
+                    <div class="large-12 columns">
+                        <input type="submit" class="button expanded" value="Submit">
+                    </div>
+                </div>
+            </form>
+            <div class="row">
+                <div class="large-12 columns">
+                    <a href="{{ url_for('oauth.login', provider='google') }}" class="google-login button expanded">
+                        Sign in with Google
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

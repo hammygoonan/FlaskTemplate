@@ -1,0 +1,11 @@
+// table{
+//     &.scroll{
+//         @include breakpoint(medium) {
+//             width: 100%;
+//         }
+//     }
+//     // width: 100%;
+// }
+.accordion-title{
+    font-size: $global-font-size;
+}
