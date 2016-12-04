@@ -5,7 +5,10 @@
 
 from project import create_app
 
-app = create_app('config.DevelopmentConfig')
-
 if __name__ == "__main__":
-    app.run()
+    import logging
+    logging.basicConfig(filename='error.log', level=logging.DEBUG)
+
+    application = create_app('config.Production')
+
+    application.run()
