@@ -4,7 +4,8 @@
 
 from flask import url_for
 from tests.base import BaseTestCase
-from flask.ext.login import current_user
+from mock import patch
+from flask_login import current_user
 from project import bcrypt
 from project.users.models import User, ResetPassword
 
@@ -165,9 +166,11 @@ class UsersTestCase(BaseTestCase):
             self.assertIn(b'Password must be at least eight characters long.',
                           response.data)
 
-    def test_user_can_create_account(self):
+    @patch('project.flask_mailgun.flask_mailgun.requests')
+    def test_user_can_create_account(self, mock_requests):
         """Test user can create an account."""
         # correct details
+        mock_requests.post.status_code = 200
         response = self.client.post(
             '/users/register',
             data={
@@ -181,8 +184,10 @@ class UsersTestCase(BaseTestCase):
         self.assertIn('Please check your email to for a confirmation link',
                       str(response.data))
 
-    def test_new_account_in_database(self):
+    @patch('project.flask_mailgun.flask_mailgun.requests')
+    def test_new_account_in_database(self, mock_requests):
         """Test new account in database with encrypted password."""
+        mock_requests.post.status_code = 200
         self.client.post(
             '/users/register',
             data={
@@ -200,8 +205,10 @@ class UsersTestCase(BaseTestCase):
             user.password, self.new_password
         ))
 
-    def test_email_is_unique_when_registering(self):
+    @patch('project.flask_mailgun.flask_mailgun.requests')
+    def test_email_is_unique_when_registering(self, mock_requests):
         """Test email is not already in use when registering."""
+        mock_requests.post.status_code = 200
         self.client.post(
             '/users/register',
             data={
@@ -225,9 +232,10 @@ class UsersTestCase(BaseTestCase):
         self.assertIn('There is already an account with this email address',
                       str(response.data))
 
-    # confirm email
-    def test_email_confirmation(self):
+    @patch('project.flask_mailgun.flask_mailgun.requests')
+    def test_email_confirmation(self, mock_requests):
         """Test email confirmation."""
+        mock_requests.post.status_code = 200
         self.client.post(
             '/users/register',
             data={
@@ -248,8 +256,10 @@ class UsersTestCase(BaseTestCase):
                       str(response.data))
         self.assertEqual(None, users.token)
 
-    def test_connot_login_without_confirmation(self):
+    @patch('project.flask_mailgun.flask_mailgun.requests')
+    def test_connot_login_without_confirmation(self, mock_requests):
         """Test account must be confirmed to login."""
+        mock_requests.post.status_code = 200
         self.client.post(
             '/users/register',
             data={
@@ -316,8 +326,10 @@ class UsersTestCase(BaseTestCase):
             response.data
         )
 
-    def test_entry_made_in_forgot_password_database(self):
+    @patch('project.flask_mailgun.flask_mailgun.requests')
+    def test_entry_made_in_forgot_password_database(self, mock_requests):
         """Test database to make sure forgot password token created."""
+        mock_requests.post.status_code = 200
         self.client.post(
             '/users/forgot_password',
             data={
@@ -329,8 +341,10 @@ class UsersTestCase(BaseTestCase):
         entry = ResetPassword.query.filter_by(user=user)
         self.assertTrue(entry)
 
-    def test_flash_message_for_forgot_password(self):
+    @patch('project.flask_mailgun.flask_mailgun.requests')
+    def test_flash_message_for_forgot_password(self, mock_requests):
         """Test emai reset page."""
+        mock_requests.post.status_code = 200
         response = self.client.post(
             '/users/forgot_password',
             data={
@@ -745,10 +759,12 @@ class UsersTestCase(BaseTestCase):
                 'unconfirmed@example.com', 'unconfirmed_password')
         self.assertIn(
             url_for('users.resend_confirmation') +
-                    '?email=unconfirmed@example.com',
+            '?email=unconfirmed@example.com',
             str(response.data))
 
-    def test_resend_authorisation_link_when_signup(self):
+    @patch('project.flask_mailgun.flask_mailgun.requests')
+    def test_resend_authorisation_link_when_signup(self, mock_requests):
+        mock_requests.post.status_code = 2
         response = self.client.post(
             '/users/register',
             data={
@@ -761,13 +777,15 @@ class UsersTestCase(BaseTestCase):
         )
         self.assertIn(
             url_for('users.resend_confirmation') +
-                    '?email=' + self.new_email,
+            '?email=' + self.new_email,
             str(response.data))
 
-    def test_resend_link(self):
+    @patch('project.flask_mailgun.flask_mailgun.requests')
+    def test_resend_link(self, mock_requests):
+        mock_requests.post.status_code = 200
         response = self.client.get(
             url_for('users.resend_confirmation') +
-                    '?email=unconfirmed@example.com',
+            '?email=unconfirmed@example.com',
             follow_redirects=True
         )
         self.assertIn(

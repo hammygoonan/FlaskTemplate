@@ -4,20 +4,20 @@
 
 from datetime import datetime
 
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from wtforms import PasswordField
-from flask_wtf.html5 import EmailField
+from wtforms.fields.html5 import EmailField
 from wtforms.fields import HiddenField
 from wtforms.fields import StringField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 from flask import url_for
-from flask.ext.login import current_user
+from flask_login import current_user
 
 from project.users.models import User, ResetPassword
 from project import bcrypt
 
 
-class RegistationForm(Form):
+class RegistationForm(FlaskForm):
 
     """User regisation form."""
 
@@ -66,12 +66,12 @@ class RegistationForm(Form):
     )
 
     def __init__(self, *args, **kwargs):
-        Form.__init__(self, *args, **kwargs)
+        FlaskForm.__init__(self, *args, **kwargs)
         self.user = None
 
     def validate(self):
         # Standard Validation
-        rv = Form.validate(self)
+        rv = FlaskForm.validate(self)
         if not rv:
             return False
 
@@ -87,7 +87,7 @@ class RegistationForm(Form):
         return True
 
 
-class LoginForm(Form):
+class LoginForm(FlaskForm):
 
     """User login form."""
 
@@ -112,12 +112,12 @@ class LoginForm(Form):
     )
 
     def __init__(self, *args, **kwargs):
-        Form.__init__(self, *args, **kwargs)
+        FlaskForm.__init__(self, *args, **kwargs)
         self.user = None
 
     def validate(self):
         # Standard Validation
-        rv = Form.validate(self)
+        rv = FlaskForm.validate(self)
         if not rv:
             return False
 
@@ -149,7 +149,7 @@ class LoginForm(Form):
         return True
 
 
-class EditDetailsForm(Form):
+class EditDetailsForm(FlaskForm):
 
     """User edit form."""
 
@@ -175,13 +175,13 @@ class EditDetailsForm(Form):
 
     def __init__(self, *args, **kwargs):
         """Initialise."""
-        Form.__init__(self, *args, **kwargs)
+        FlaskForm.__init__(self, *args, **kwargs)
         self.user = None
 
     def validate(self):
         """Non standard validation methods."""
         # Standard Validation
-        rv = Form.validate(self)
+        rv = FlaskForm.validate(self)
         if not rv:
             return False
 
@@ -197,7 +197,7 @@ class EditDetailsForm(Form):
         return True
 
 
-class EditPasswordForm(Form):
+class EditPasswordForm(FlaskForm):
 
     """User edit form."""
 
@@ -227,7 +227,7 @@ class EditPasswordForm(Form):
     )
 
 
-class ForgotPasswordForm(Form):
+class ForgotPasswordForm(FlaskForm):
 
     """Forgot Password form."""
 
@@ -246,7 +246,7 @@ class ForgotPasswordForm(Form):
     def validate(self):
         """Non standard validation methods."""
         # Standard Validation
-        rv = Form.validate(self)
+        rv = FlaskForm.validate(self)
         if not rv:
             return False
 
@@ -262,7 +262,7 @@ class ForgotPasswordForm(Form):
         return True
 
 
-class ResetPasswordForm(Form):
+class ResetPasswordForm(FlaskForm):
     code = HiddenField('Code', validators=[DataRequired(
         message="Something is wrong. Please try again and contact the" +
                 " administrator if your issue persists."
@@ -305,7 +305,7 @@ class ResetPasswordForm(Form):
 
     def validate(self):
         # Standard Validation
-        rv = Form.validate(self)
+        rv = FlaskForm.validate(self)
         if not rv:
             return False
 

@@ -7,7 +7,7 @@ import unittest
 import coverage
 import os
 
-from flask.ext.script import Manager
+from flask_script import Manager
 from project import app, db
 
 manager = Manager(app)

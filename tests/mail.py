@@ -3,8 +3,7 @@
 """Unit tests for users module."""
 
 import json
-
-from flask import url_for
+from mock import patch
 
 from tests.base import BaseTestCase
 from project.mail.mail import Mail, MailMessage
@@ -54,7 +53,11 @@ class UsersTestCase(BaseTestCase):
         self.assertIn('<a href="http://example.com">http://example.com</a>',
                       response)
 
-    def test_send_email(self):
+    @patch('project.flask_mailgun.flask_mailgun.requests')
+    def test_send_email(self, mock_requests):
+        mock_requests.post.status_code = 200
+        mock_requests.post.return_value.content = b'{"message": "Queued. '\
+                                                  b'Thank you."}'
         mail = Mail()
         response = mail.send_email(
             {
@@ -68,7 +71,11 @@ class UsersTestCase(BaseTestCase):
         self.assertIsInstance(json_dict, dict)
         self.assertEqual(json_dict['message'], "Queued. Thank you.")
 
-    def test_send_forgot_password(self):
+    @patch('project.flask_mailgun.flask_mailgun.requests')
+    def test_send_forgot_password(self, mock_requests):
+        mock_requests.post.status_code = 200
+        mock_requests.post.return_value.content = b'{"message": "Queued. '\
+                                                  b'Thank you."}'
         mail = Mail()
         response = mail.send_forgot_password(
             {
@@ -82,7 +89,11 @@ class UsersTestCase(BaseTestCase):
         self.assertIsInstance(json_dict, dict)
         self.assertEqual(json_dict['message'], "Queued. Thank you.")
 
-    def test_send_registration(self):
+    @patch('project.flask_mailgun.flask_mailgun.requests')
+    def test_send_registration(self, mock_requests):
+        mock_requests.post.status_code = 200
+        mock_requests.post.return_value.content = b'{"message": "Queued. '\
+                                                  b'Thank you."}'
         mail = Mail()
         response = mail.send_registration(
             {

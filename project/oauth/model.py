@@ -1,6 +1,6 @@
 from flask import url_for, session
 from flask_oauthlib.client import OAuth
-from flask.ext.login import login_user
+from flask_login import login_user
 
 from project import app, db, random_str
 from project.users.models import User

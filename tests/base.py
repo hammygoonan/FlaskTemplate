@@ -3,7 +3,7 @@
 """Base testing module that other tests extend from."""
 
 from datetime import datetime, timedelta
-from flask.ext.testing import TestCase
+from flask_testing import TestCase
 from flask import url_for
 
 from project import app, db, random_str

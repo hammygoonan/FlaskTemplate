@@ -9,9 +9,9 @@ import re
 import os
 
 from flask import Flask, send_from_directory, request
-from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.bcrypt import Bcrypt
-from flask.ext.login import LoginManager
+from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
+from flask_login import LoginManager
 from .flask_mailgun.flask_mailgun import Mailgun
 from .errors import ErrorHandler
 

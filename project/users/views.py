@@ -6,12 +6,13 @@ from datetime import datetime, timedelta
 
 from flask import render_template, Blueprint, request, flash, redirect,\
     url_for, session, abort
-from flask.ext.login import login_user, login_required, logout_user,\
+from flask_login import login_user, login_required, logout_user,\
     current_user
 
-from project import app, db, bcrypt, random_str
+from project import db, bcrypt, random_str
 from project.users.models import User, ResetPassword
-from project.mail.mail import send_forgot_password, send_registration
+from project.mail.mail import send_forgot_password
+from project.mail.mail import send_registration
 from .forms import RegistationForm
 from .forms import LoginForm
 from .forms import EditPasswordForm
