@@ -2,12 +2,16 @@
 # -*- coding: utf-8 -*-
 """Base testing module that other tests extend from."""
 
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 from flask_testing import TestCase
 from flask import url_for
 
-from project import app, db, random_str
-from project.users.models import User, ResetPassword
+from project import create_app
+from project import db
+from project import random_str
+from project.users.models import User
+from project.users.models import ResetPassword
 
 
 class BaseTestCase(TestCase):
@@ -16,7 +20,7 @@ class BaseTestCase(TestCase):
 
     def create_app(self):
         """Create app for tests."""
-        return app
+        return create_app('config.Test')
 
     def setUp(self):
         """Setup tests."""

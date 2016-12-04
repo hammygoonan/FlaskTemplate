@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template
+from flask import Blueprint
+from flask import render_template
 
 from project.users.forms import RegistationForm
 
@@ -11,4 +12,4 @@ pages_blueprint = Blueprint(
 @pages_blueprint.route('/')
 def home():
     form = RegistationForm()
-    return render_template('home.html', form=form)
+    return render_template('pages/home.html', form=form)

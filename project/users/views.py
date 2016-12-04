@@ -4,10 +4,18 @@
 
 from datetime import datetime, timedelta
 
-from flask import render_template, Blueprint, request, flash, redirect,\
-    url_for, session, abort
-from flask_login import login_user, login_required, logout_user,\
-    current_user
+from flask import render_template
+from flask import Blueprint
+from flask import request
+from flask import flash
+from flask import redirect
+from flask import url_for
+from flask import session
+from flask import abort
+from flask_login import login_user
+from flask_login import login_required
+from flask_login import logout_user
+from flask_login import current_user
 
 from project import db, bcrypt, random_str
 from project.users.models import User, ResetPassword
@@ -40,7 +48,7 @@ def login():
 
     if request.args.get('next'):
         session['next_page'] = request.args.get('next')
-    return render_template('login.html', form=form)
+    return render_template('users/login.html', form=form)
 
 
 @users_blueprint.route('/modal_login')
@@ -49,7 +57,7 @@ def modal_login():
     form = LoginForm()
     if request.args.get('next'):
         session['next_page'] = request.args.get('next')
-    return render_template('modal_login.html', form=form)
+    return render_template('users/modal_login.html', form=form)
 
 
 @users_blueprint.route('/logout')
@@ -95,7 +103,7 @@ def register():
               'it by clicking <a href="' + resend_url + '">here</a>', 'info')
         return redirect(url_for('users.login'))
 
-    return render_template('register.html', form=form)
+    return render_template('users/register.html', form=form)
 
 
 @users_blueprint.route('/resend_confirmation')
@@ -163,7 +171,7 @@ def forgot_password():
               'your email.', 'info')
         return redirect(url_for('users.login'))
 
-    return render_template('forgot_password.html', form=form)
+    return render_template('users/forgot_password.html', form=form)
 
 
 @users_blueprint.route('/reset_password/<path:path>', methods=['GET', 'POST'])
@@ -186,7 +194,7 @@ def reset_password(path):
         return redirect(url_for('users.login'))
 
     return render_template(
-        'reset_password.html',
+        'users/reset_password.html',
         form=form,
         code=reset.code
     )
@@ -199,7 +207,7 @@ def edit():
     form = EditDetailsForm()
     password_form = EditPasswordForm()
     return render_template(
-        'edit.html',
+        'users/edit.html',
         form=form,
         password_form=password_form
     )

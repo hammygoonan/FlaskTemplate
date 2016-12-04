@@ -1,6 +1,7 @@
 import os
 
-from project import mailgun, app
+from project import mailgun
+from project import current_app
 
 
 class Mail():
@@ -9,7 +10,7 @@ class Mail():
 
     def __init__(self):
         self.path = os.path.dirname(__file__)
-        self.default_from = app.config['MAIL_FROM_DEFAULT']
+        self.default_from = current_app.config['MAIL_FROM_DEFAULT']
 
     @staticmethod
     def send_registration(data, **kwargs):

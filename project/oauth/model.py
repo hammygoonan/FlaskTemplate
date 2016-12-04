@@ -2,7 +2,9 @@ from flask import url_for, session
 from flask_oauthlib.client import OAuth
 from flask_login import login_user
 
-from project import app, db, random_str
+from project import current_app
+from project import db
+from project import random_str
 from project.users.models import User
 
 
@@ -54,8 +56,8 @@ class TwitterSignIn(OAuthSignIn):
             request_token_url='https://api.twitter.com/oauth/request_token',
             access_token_url='https://api.twitter.com/oauth/access_token',
             authorize_url='https://api.twitter.com/oauth/authenticate',
-            consumer_key=app.config['TWITTER_CUSTOMER_KEY'],
-            consumer_secret=app.config['TWITTER_CUSTOMER_SECRET']
+            consumer_key=current_app.config['TWITTER_CUSTOMER_KEY'],
+            consumer_secret=current_app.config['TWITTER_CUSTOMER_SECRET']
         )
         self.service.tokengetter = TwitterSignIn.get_token
 
@@ -72,8 +74,8 @@ class GoogleSignIn(OAuthSignIn):
         oauth = OAuth()
         self.service = oauth.remote_app(
             'google',
-            consumer_key=app.config['GOOGLE_CLIENT_ID'],
-            consumer_secret=app.config['GOOGLE_CLIENT_SECRET'],
+            consumer_key=current_app.config['GOOGLE_CLIENT_ID'],
+            consumer_secret=current_app.config['GOOGLE_CLIENT_SECRET'],
             request_token_params={
                 'scope': 'email'
             },
