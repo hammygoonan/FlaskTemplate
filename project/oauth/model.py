@@ -1,8 +1,9 @@
-from flask import url_for, session
+from flask import url_for
+from flask import session
 from flask_oauthlib.client import OAuth
 from flask_login import login_user
+from flask import current_app
 
-from project import current_app
 from project import db
 from project import random_str
 from project.users.models import User

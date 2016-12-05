@@ -1,7 +1,8 @@
 import os
 
+from flask import current_app
+
 from project import mailgun
-from project import current_app
 
 
 class Mail():

@@ -9,9 +9,6 @@ import re
 import os
 
 from flask import Flask
-from flask import send_from_directory
-from flask import request
-from flask import current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
@@ -46,6 +43,7 @@ def create_app(config=None):
         ErrorHandler(app)
 
     load_blueprints(app)
+
     return app
 
 
@@ -73,7 +71,7 @@ def load_blueprints(app):
     app.register_blueprint(pages_blueprint)
 
 
-from .users.models import User
+from project.users.models import User
 
 login_manager.login_view = "users.login"
 login_manager.login_message = "Please login to view that page."
@@ -84,8 +82,3 @@ login_manager.login_message_category = "error"
 def load_user(user_id):
     """Load the logged in user for the LoginManager."""
     return User.query.filter(User.id == int(user_id)).first()
-
-# 
-# @current_app.route('/robots.txt')
-# def static_from_root():
-#     return send_from_directory(current_app.static_folder, request.path[1:])
