@@ -10,7 +10,6 @@ class BaseConfig():
     DEBUG = False
     SECRET_KEY = 'REPLACE WITH VERY SECRET KEY'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SERVER_NAME = 'localhost'
     ERROR_MAILHOST = ()
     ERROR_EMAIL_TO = ''
     ERROR_EMAIL_FROM = []
